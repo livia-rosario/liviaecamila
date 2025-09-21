@@ -12,7 +12,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
+    padding: 0;
 }
 
 /* Container Principal */
@@ -20,33 +20,43 @@ body {
     position: relative;
     width: 100%;
     height: 100vh;
+    max-width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* Simulação do Celular */
-.phone {
-    width: 375px;
-    height: 812px;
+/* App Container Responsivo */
+.app-container {
+    width: 100%;
+    max-width: 375px;
+    height: 100vh;
     background: #F5F5F5;
-    border-radius: 40px;
-    padding: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Status Bar */
-.status-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 40px;
-    color: #333;
-    padding: 0 10px;
+/* Responsividade para tablets e desktop */
+@media (min-width: 768px) {
+    .container {
+        padding: 20px;
+    }
+    
+    .app-container {
+        height: calc(100vh - 40px);
+        max-height: 812px;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+}
+
+@media (min-width: 1024px) {
+    .app-container {
+        max-width: 480px;
+        height: 90vh;
+    }
 }
 
 /* Telas */
@@ -57,11 +67,11 @@ body {
     width: 100%;
     height: 100%;
     display: none;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column;
     opacity: 0;
     transform: translateX(100%);
     transition: all 0.3s ease-in-out;
+    overflow-y: auto;
 }
 
 .screen.active {
@@ -75,8 +85,8 @@ body {
     flex: 1;
     display: flex;
     flex-direction: column;
+    padding: 20px;
     justify-content: center;
-    padding: 20px 0;
 }
 
 /* Tela Inicial */
@@ -87,39 +97,26 @@ body {
 }
 
 .couple-circle {
-    width: 120px;
-    height: 120px;
+    width: 180px;
+    height: 180px;
     border-radius: 50%;
-    background: #FFB085;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
+    background-image: url('casal.png');
+    background-size: cover;
+    background-position: center;
+    background-color: #FFB085;
+    box-shadow: 0 8px 24px rgba(242, 108, 79, 0.2);
 }
 
-.person {
-    width: 35px;
-    height: 45px;
-    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-    position: absolute;
-}
-
-.person1 {
-    background: #F26C4F;
-    left: 25px;
-    transform: rotate(-10deg);
-}
-
-.person2 {
-    background: #E596C8;
-    right: 25px;
-    transform: rotate(10deg);
+@media (min-width: 768px) {
+    .couple-circle {
+        width: 220px;
+        height: 220px;
+    }
 }
 
 .app-title {
     font-family: 'Oleo Script Swash Caps', cursive;
-    font-size: 36px;
+    font-size: clamp(28px, 8vw, 36px);
     text-align: center;
     color: #C75B9A;
     margin-bottom: 8px;
@@ -128,7 +125,7 @@ body {
 
 .app-subtitle {
     font-family: 'Outfit', sans-serif;
-    font-size: 14px;
+    font-size: clamp(12px, 3vw, 14px);
     font-weight: 500;
     text-align: center;
     color: #C75B9A;
@@ -140,33 +137,36 @@ body {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding: 0 20px;
 }
 
 /* Títulos das Telas */
 .screen-title {
     font-family: 'Outfit', sans-serif;
-    font-size: 24px;
+    font-size: clamp(20px, 5vw, 24px);
     font-weight: 600;
     text-align: center;
     margin-bottom: 40px;
     color: #333;
 }
 
-/* Botões */
+/* Botões Responsivos */
 .btn {
     background: #F5F5F5;
     border: 2px solid #FFB085;
     border-radius: 24px;
     padding: 16px 24px;
     font-family: 'Outfit', sans-serif;
-    font-size: 16px;
+    font-size: clamp(14px, 4vw, 16px);
     font-weight: 600;
     color: #333;
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: center;
     box-shadow: 0 4px 12px rgba(255, 176, 133, 0.2);
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn:hover {
@@ -198,17 +198,28 @@ body {
     color: #F5F5F5;
 }
 
+.btn-danger {
+    background: transparent;
+    color: #ff4757;
+    border-color: #ff4757;
+}
+
+.btn-danger:hover {
+    background: #ff4757;
+    color: #F5F5F5;
+}
+
 /* Botão Voltar */
 .back-btn {
     position: absolute;
-    top: 80px;
-    left: 30px;
+    top: 20px;
+    left: 20px;
     background: none;
     border: none;
     cursor: pointer;
     color: #C75B9A;
     z-index: 10;
-    padding: 8px;
+    padding: 12px;
     border-radius: 50%;
     transition: all 0.3s ease;
 }
@@ -222,7 +233,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    padding: 0 40px;
 }
 
 .user-btn {
@@ -236,7 +246,7 @@ body {
     align-items: center;
     gap: 16px;
     font-family: 'Outfit', sans-serif;
-    font-size: 18px;
+    font-size: clamp(16px, 4vw, 18px);
     font-weight: 600;
     color: #333;
 }
@@ -248,23 +258,28 @@ body {
 }
 
 .user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
 }
 
 .user-avatar.livia {
-    background: #F26C4F;
+    background-image: url('livia.png');
+    background-color: #F26C4F;
 }
 
 .user-avatar.camila {
-    background: #E596C8;
+    background-image: url('camila.png');
+    background-color: #E596C8;
 }
 
-/* Stats Grid */
+/* Stats Grid Responsivo */
 .stats-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 12px;
     margin-bottom: 30px;
 }
@@ -272,30 +287,38 @@ body {
 .stat-card {
     background: linear-gradient(135deg, #FFB085, #F26C4F);
     border-radius: 16px;
-    padding: 20px 12px;
+    padding: 16px 8px;
     text-align: center;
     color: #F5F5F5;
     box-shadow: 0 4px 12px rgba(242, 108, 79, 0.2);
 }
 
+@media (min-width: 768px) {
+    .stat-card {
+        padding: 20px 12px;
+    }
+}
+
 .stat-icon {
     margin-bottom: 8px;
     opacity: 0.9;
+    display: flex;
+    justify-content: center;
 }
 
 .stat-number {
-    font-size: 24px;
+    font-size: clamp(20px, 6vw, 24px);
     font-weight: 700;
     margin-bottom: 4px;
 }
 
 .stat-label {
-    font-size: 12px;
+    font-size: clamp(10px, 3vw, 12px);
     font-weight: 500;
     opacity: 0.9;
 }
 
-/* Filter Tabs */
+/* Filter Tabs Responsivos */
 .filter-tabs {
     display: flex;
     background: rgba(255, 176, 133, 0.2);
@@ -308,10 +331,10 @@ body {
     flex: 1;
     background: none;
     border: none;
-    padding: 10px 16px;
+    padding: 12px 8px;
     border-radius: 8px;
     font-family: 'Outfit', sans-serif;
-    font-size: 14px;
+    font-size: clamp(12px, 3vw, 14px);
     font-weight: 600;
     color: #C75B9A;
     cursor: pointer;
@@ -334,10 +357,12 @@ body {
     text-align: center;
     color: #999;
     margin-top: 60px;
+    padding: 20px;
 }
 
 .empty-state p {
     margin-bottom: 8px;
+    font-size: clamp(14px, 4vw, 16px);
 }
 
 .review-card {
@@ -347,6 +372,14 @@ body {
     padding: 16px;
     margin-bottom: 12px;
     box-shadow: 0 2px 8px rgba(255, 176, 133, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.review-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 176, 133, 0.2);
+    border-color: #F26C4F;
 }
 
 .review-header {
@@ -358,12 +391,12 @@ body {
 
 .review-name {
     font-weight: 700;
-    font-size: 16px;
+    font-size: clamp(14px, 4vw, 16px);
     color: #333;
 }
 
 .review-date {
-    font-size: 12px;
+    font-size: clamp(10px, 3vw, 12px);
     color: #999;
 }
 
@@ -373,13 +406,13 @@ body {
     color: #F5F5F5;
     padding: 4px 8px;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: clamp(10px, 3vw, 12px);
     font-weight: 600;
     margin-bottom: 8px;
 }
 
 .review-location {
-    font-size: 14px;
+    font-size: clamp(12px, 3vw, 14px);
     color: #666;
     margin-bottom: 8px;
 }
@@ -388,11 +421,12 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
 }
 
 .rating-average {
     font-weight: 700;
-    font-size: 18px;
+    font-size: clamp(16px, 5vw, 18px);
     color: #F26C4F;
 }
 
@@ -401,7 +435,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    padding: 0 20px;
 }
 
 .category-btn {
@@ -415,7 +448,7 @@ body {
     align-items: center;
     gap: 20px;
     font-family: 'Outfit', sans-serif;
-    font-size: 18px;
+    font-size: clamp(16px, 4vw, 18px);
     font-weight: 600;
     color: #333;
 }
@@ -429,13 +462,14 @@ body {
 .category-icon {
     color: #F26C4F;
     transition: color 0.3s ease;
+    flex-shrink: 0;
 }
 
 .category-btn:hover .category-icon {
     color: #F5F5F5;
 }
 
-/* Formulário */
+/* Formulário Responsivo */
 .form {
     display: flex;
     flex-direction: column;
@@ -448,7 +482,7 @@ body {
 }
 
 .form-label {
-    font-size: 16px;
+    font-size: clamp(14px, 4vw, 16px);
     font-weight: 600;
     margin-bottom: 8px;
     color: #333;
@@ -458,7 +492,7 @@ body {
     padding: 14px 16px;
     border: 2px solid #FFB085;
     border-radius: 12px;
-    font-size: 16px;
+    font-size: clamp(14px, 4vw, 16px);
     background: #F5F5F5;
     color: #333;
     transition: border-color 0.3s ease;
@@ -471,7 +505,7 @@ body {
     box-shadow: 0 0 0 3px rgba(229, 150, 200, 0.1);
 }
 
-/* Avaliações por Estrelas */
+/* Avaliações por Estrelas Responsivas */
 .rating-group {
     margin-bottom: 24px;
 }
@@ -484,7 +518,7 @@ body {
 }
 
 .star {
-    font-size: 28px;
+    font-size: clamp(24px, 7vw, 28px);
     color: #ddd;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -500,46 +534,110 @@ body {
     transform: scale(1.1);
 }
 
-/* Responsividade */
-@media (max-width: 480px) {
-    .phone {
-        width: 100vw;
-        height: 100vh;
-        border-radius: 0;
-        box-shadow: none;
-    }
-    
-    .container {
-        padding: 0;
-    }
+/* Tela de Detalhes Responsiva */
+.details-content {
+    flex: 1;
+    padding: 20px 0;
+}
+
+.details-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.details-title {
+    font-size: clamp(24px, 7vw, 28px);
+    font-weight: 700;
+    color: #F26C4F;
+    margin-bottom: 8px;
+}
+
+.details-subtitle {
+    font-size: clamp(14px, 4vw, 16px);
+    color: #666;
+    margin-bottom: 4px;
+}
+
+.details-user {
+    display: inline-block;
+    background: #E596C8;
+    color: #F5F5F5;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: clamp(12px, 3vw, 14px);
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.details-ratings {
+    margin: 30px 0;
+}
+
+.rating-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.rating-item:last-child {
+    border-bottom: none;
+}
+
+.rating-label {
+    font-weight: 600;
+    color: #333;
+    font-size: clamp(14px, 4vw, 16px);
+}
+
+.rating-stars {
+    display: flex;
+    gap: 4px;
+}
+
+.rating-star {
+    color: #FFB085;
+    font-size: clamp(16px, 5vw, 18px);
+}
+
+.rating-star.empty {
+    color: #ddd;
+}
+
+.details-average {
+    text-align: center;
+    background: linear-gradient(135deg, #FFB085, #F26C4F);
+    color: #F5F5F5;
+    padding: 20px;
+    border-radius: 16px;
+    margin: 20px 0;
+}
+
+.average-number {
+    font-size: clamp(30px, 8vw, 36px);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.average-label {
+    font-size: clamp(12px, 3vw, 14px);
+    opacity: 0.9;
+}
+
+.details-actions {
+    padding: 20px 0;
 }
 
 /* Scrollbar personalizada */
-.reviews-container::-webkit-scrollbar {
+.reviews-container::-webkit-scrollbar,
+.screen::-webkit-scrollbar {
     width: 4px;
 }
 
-.reviews-container::-webkit-scrollbar-track {
+.reviews-container::-webkit-scrollbar-track,
+.screen::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.reviews-container::-webkit-scrollbar-thumb {
-    background: #FFB085;
-    border-radius: 2px;
-}
-
-/* Animações */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.review-card {
-    animation: fadeIn 0.3s ease-out;
-}
+             

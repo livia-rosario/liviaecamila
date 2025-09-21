@@ -1,7 +1,16 @@
+// Configuração do Supabase
+const supabaseUrl = 'https://riscuqhqbkzlzsqzmtaa.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpc2N1cWhxYmt6bHpzcXptdGFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg0MTYzNTgsImV4cCI6MjA3Mzk5MjM1OH0.llaXtLrm1IfF4m3y8Hc_vL8_Yzrczk8nPwL5G-q5-Q4';
+
+// Inicializar Supabase (versão CDN para não precisar de build)
+const { createClient } = supabase;
+const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
 // Estado da aplicação
 let currentUser = null;
 let currentCategory = null;
-let reviews = JSON.parse(localStorage.getItem('adcReviews')) || [];
+let currentReviewId = null;
+let reviews = [];
 
 // Critérios de avaliação por categoria
 const ratingCriteria = {
@@ -22,6 +31,87 @@ const ratingCriteria = {
     ]
 };
 
+// Função para carregar reviews do Supabase
+async function loadReviews() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('reviews')
+            .select('*')
+            .order('timestamp', { ascending: false });
+        
+        if (error) {
+            console.error('Erro ao carregar reviews:', error);
+            showNotification('Erro ao carregar dados!');
+            return;
+        }
+        
+        reviews = data || [];
+        updateDashboard();
+        displayReviews();
+    } catch (error) {
+        console.error('Erro na conexão:', error);
+        showNotification('Erro de conexão!');
+    }
+}
+
+// Função para salvar review no Supabase
+async function saveReview(reviewData) {
+    try {
+        const { data, error } = await supabaseClient
+            .from('reviews')
+            .insert([{
+                id: reviewData.id,
+                user_name: reviewData.user,
+                category: reviewData.category,
+                name: reviewData.name,
+                city: reviewData.city,
+                visit_date: reviewData.date,
+                ratings: reviewData.ratings,
+                average: reviewData.average,
+                timestamp: reviewData.timestamp
+            }])
+            .select();
+        
+        if (error) {
+            console.error('Erro ao salvar:', error);
+            showNotification('Erro ao salvar avaliação!');
+            return false;
+        }
+        
+        // Atualizar lista local
+        await loadReviews();
+        return true;
+    } catch (error) {
+        console.error('Erro na conexão:', error);
+        showNotification('Erro de conexão!');
+        return false;
+    }
+}
+
+// Função para deletar review do Supabase
+async function deleteReviewFromDB(reviewId) {
+    try {
+        const { error } = await supabaseClient
+            .from('reviews')
+            .delete()
+            .eq('id', reviewId);
+        
+        if (error) {
+            console.error('Erro ao deletar:', error);
+            showNotification('Erro ao excluir avaliação!');
+            return false;
+        }
+        
+        // Atualizar lista local
+        await loadReviews();
+        return true;
+    } catch (error) {
+        console.error('Erro na conexão:', error);
+        showNotification('Erro de conexão!');
+        return false;
+    }
+}
+
 // Navegação entre telas
 function showScreen(screenId) {
     // Esconder todas as telas
@@ -32,10 +122,9 @@ function showScreen(screenId) {
     // Mostrar tela atual
     document.getElementById(screenId).classList.add('active');
     
-    // Atualizar conteúdo se necessário
+    // Carregar dados se necessário
     if (screenId === 'dashboard-screen') {
-        updateDashboard();
-        displayReviews();
+        loadReviews();
     }
 }
 
@@ -132,68 +221,84 @@ function updateStarsVisual(stars, rating, isHover = false) {
 }
 
 // Salvar avaliação
-document.getElementById('rating-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const placeName = document.getElementById('place-name').value;
-    const visitDate = document.getElementById('visit-date').value;
-    const city = document.getElementById('city').value;
-    
-    // Validar se todas as avaliações foram preenchidas
-    const ratingContainers = document.querySelectorAll('.stars-container');
-    const ratings = {};
-    let allRated = true;
-    
-    ratingContainers.forEach(container => {
-        const criterionKey = container.dataset.rating;
-        const rating = parseInt(container.dataset.value) || 0;
-        
-        if (rating === 0) {
-            allRated = false;
-        }
-        
-        ratings[criterionKey] = rating;
-    });
-    
-    if (!allRated) {
-        alert('Por favor, avalie todos os critérios!');
-        return;
+document.addEventListener('DOMContentLoaded', function() {
+    const ratingForm = document.getElementById('rating-form');
+    if (ratingForm) {
+        ratingForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Salvando...';
+            submitBtn.disabled = true;
+            
+            const placeName = document.getElementById('place-name').value;
+            const visitDate = document.getElementById('visit-date').value;
+            const city = document.getElementById('city').value;
+            
+            // Validar se todas as avaliações foram preenchidas
+            const ratingContainers = document.querySelectorAll('.stars-container');
+            const ratings = {};
+            let allRated = true;
+            
+            ratingContainers.forEach(container => {
+                const criterionKey = container.dataset.rating;
+                const rating = parseInt(container.dataset.value) || 0;
+                
+                if (rating === 0) {
+                    allRated = false;
+                }
+                
+                ratings[criterionKey] = rating;
+            });
+            
+            if (!allRated) {
+                alert('Por favor, avalie todos os critérios!');
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                return;
+            }
+            
+            // Calcular média
+            const ratingValues = Object.values(ratings);
+            const average = ratingValues.reduce((sum, rating) => sum + rating, 0) / ratingValues.length;
+            
+            // Criar nova avaliação
+            const newReview = {
+                id: Date.now(),
+                user: currentUser,
+                category: currentCategory,
+                name: placeName,
+                city: city,
+                date: visitDate,
+                ratings: ratings,
+                average: Math.round(average * 10) / 10,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Salvar no Supabase
+            const success = await saveReview(newReview);
+            
+            if (success) {
+                // Resetar formulário
+                ratingForm.reset();
+                document.querySelectorAll('.stars-container').forEach(container => {
+                    container.dataset.value = '0';
+                    const stars = container.querySelectorAll('.star');
+                    updateStarsVisual(stars, 0);
+                });
+                
+                // Voltar ao dashboard
+                showScreen('dashboard-screen');
+                
+                // Feedback visual
+                showNotification(`Avaliação salva!\n${placeName} - ${average}⭐`);
+            }
+            
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        });
     }
-    
-    // Calcular média
-    const ratingValues = Object.values(ratings);
-    const average = ratingValues.reduce((sum, rating) => sum + rating, 0) / ratingValues.length;
-    
-    // Criar nova avaliação
-    const newReview = {
-        id: Date.now(),
-        user: currentUser,
-        category: currentCategory,
-        name: placeName,
-        city: city,
-        date: visitDate,
-        ratings: ratings,
-        average: Math.round(average * 10) / 10,
-        timestamp: new Date().toISOString()
-    };
-    
-    // Salvar
-    reviews.push(newReview);
-    localStorage.setItem('adcReviews', JSON.stringify(reviews));
-    
-    // Resetar formulário
-    document.getElementById('rating-form').reset();
-    document.querySelectorAll('.stars-container').forEach(container => {
-        container.dataset.value = '0';
-        const stars = container.querySelectorAll('.star');
-        updateStarsVisual(stars, 0);
-    });
-    
-    // Voltar ao dashboard
-    showScreen('dashboard-screen');
-    
-    // Feedback visual
-    showNotification(`✨ Avaliação salva!\n${placeName} - ${average}⭐`);
 });
 
 // Atualizar dashboard com estatísticas
@@ -204,9 +309,13 @@ function updateDashboard() {
         filme: reviews.filter(r => r.category === 'filme').length
     };
     
-    document.getElementById('gelateria-count').textContent = stats.gelateria;
-    document.getElementById('restaurante-count').textContent = stats.restaurante;
-    document.getElementById('filme-count').textContent = stats.filme;
+    const gelateriaCount = document.getElementById('gelateria-count');
+    const restauranteCount = document.getElementById('restaurante-count');
+    const filmeCount = document.getElementById('filme-count');
+    
+    if (gelateriaCount) gelateriaCount.textContent = stats.gelateria;
+    if (restauranteCount) restauranteCount.textContent = stats.restaurante;
+    if (filmeCount) filmeCount.textContent = stats.filme;
 }
 
 // Filtrar reviews
@@ -219,7 +328,17 @@ function filterReviews(filter) {
     document.querySelectorAll('.filter-tab').forEach(tab => {
         tab.classList.remove('active');
     });
-    event.target.classList.add('active');
+    
+    // Encontrar e ativar o botão correto
+    const activeTab = Array.from(document.querySelectorAll('.filter-tab')).find(tab => 
+        (filter === 'all' && tab.textContent.trim() === 'Todos') ||
+        (filter === 'livia' && tab.textContent.trim() === 'Lívia') ||
+        (filter === 'camila' && tab.textContent.trim() === 'Camila')
+    );
+    
+    if (activeTab) {
+        activeTab.classList.add('active');
+    }
     
     displayReviews();
 }
@@ -227,33 +346,34 @@ function filterReviews(filter) {
 // Exibir reviews
 function displayReviews() {
     const reviewsList = document.getElementById('reviews-list');
+    if (!reviewsList) return;
     
     let filteredReviews = reviews;
     
     if (currentFilter !== 'all') {
-        filteredReviews = reviews.filter(review => review.user === currentFilter);
+        filteredReviews = reviews.filter(review => review.user_name === currentFilter);
     }
     
     if (filteredReviews.length === 0) {
         reviewsList.innerHTML = `
             <div class="empty-state">
                 <p>Nenhum registro ainda!</p>
-                <p>Que tal adicionar o primeiro? ✨</p>
+                <p>Que tal adicionar o primeiro?</p>
             </div>
         `;
         return;
     }
     
     // Ordenar por data (mais recente primeiro)
-    filteredReviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+    filteredReviews.sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date));
     
     reviewsList.innerHTML = filteredReviews.map(review => `
-        <div class="review-card">
+        <div class="review-card" onclick="showReviewDetails(${review.id})">
             <div class="review-header">
                 <div class="review-name">${review.name}</div>
-                <div class="review-date">${formatDate(review.date)}</div>
+                <div class="review-date">${formatDate(review.visit_date)}</div>
             </div>
-            <div class="review-user">${review.user === 'livia' ? 'Lívia' : 'Camila'}</div>
+            <div class="review-user">${review.user_name === 'livia' ? 'Lívia' : 'Camila'}</div>
             <div class="review-location">📍 ${review.city}</div>
             <div class="review-rating">
                 <span class="rating-average">${review.average}⭐</span>
@@ -261,6 +381,74 @@ function displayReviews() {
             </div>
         </div>
     `).join('');
+}
+
+// Mostrar detalhes da avaliação
+function showReviewDetails(reviewId) {
+    const review = reviews.find(r => r.id === reviewId);
+    if (!review) return;
+    
+    currentReviewId = reviewId;
+    
+    const detailsContent = document.getElementById('details-content');
+    if (!detailsContent) return;
+    
+    // Gerar estrelas para cada critério
+    const ratingsHtml = Object.entries(review.ratings).map(([key, rating]) => {
+        const criterionLabel = getCriterionLabel(review.category, key);
+        const starsHtml = Array.from({length: 5}, (_, i) => 
+            `<span class="rating-star ${i < rating ? '' : 'empty'}">★</span>`
+        ).join('');
+        
+        return `
+            <div class="rating-item">
+                <span class="rating-label">${criterionLabel}</span>
+                <div class="rating-stars">${starsHtml}</div>
+            </div>
+        `;
+    }).join('');
+    
+    detailsContent.innerHTML = `
+        <div class="details-header">
+            <h2 class="details-title">${review.name}</h2>
+            <div class="details-subtitle">📍 ${review.city}</div>
+            <div class="details-subtitle">${formatDate(review.visit_date)}</div>
+            <span class="details-user">${review.user_name === 'livia' ? 'Lívia' : 'Camila'}</span>
+        </div>
+        
+        <div class="details-average">
+            <div class="average-number">${review.average}⭐</div>
+            <div class="average-label">Média Geral</div>
+        </div>
+        
+        <div class="details-ratings">
+            ${ratingsHtml}
+        </div>
+    `;
+    
+    showScreen('details-screen');
+}
+
+// Deletar avaliação
+async function deleteReview() {
+    if (!currentReviewId) return;
+    
+    if (confirm('Tem certeza que quer excluir esta avaliação?')) {
+        const success = await deleteReviewFromDB(currentReviewId);
+        
+        if (success) {
+            showNotification('Avaliação excluída!');
+            showScreen('dashboard-screen');
+            currentReviewId = null;
+        }
+    }
+}
+
+// Obter label do critério
+function getCriterionLabel(category, key) {
+    const criteria = ratingCriteria[category];
+    const criterion = criteria.find(c => c.key === key);
+    return criterion ? criterion.label : key;
 }
 
 // Funções auxiliares
@@ -293,7 +481,6 @@ function getCategoryName(category) {
 
 // Notificação
 function showNotification(message) {
-    // Criar elemento de notificação
     const notification = document.createElement('div');
     notification.style.cssText = `
         position: fixed;
@@ -317,73 +504,34 @@ function showNotification(message) {
     notification.textContent = message;
     document.body.appendChild(notification);
     
-    // Animação de entrada
     setTimeout(() => {
         notification.style.transform = 'translateX(0)';
     }, 100);
     
-    // Remover após 3 segundos
     setTimeout(() => {
         notification.style.transform = 'translateX(100%)';
         setTimeout(() => {
-            document.body.removeChild(notification);
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
         }, 300);
     }, 3000);
 }
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', function() {
-    // Definir data de hoje por padrão
-    const today = new Date().toISOString().split('T')[0];
-    const dateInput = document.getElementById('visit-date');
-    if (dateInput) {
-        dateInput.value = today;
-    }
-    
-    // Atualizar dashboard
-    updateDashboard();
+    // Carregar reviews do Supabase
+    loadReviews();
     
     // Definir primeiro filtro ativo
     const firstTab = document.querySelector('.filter-tab');
     if (firstTab) {
         firstTab.classList.add('active');
     }
+    
+    // Definir data de hoje por padrão
+    const dateInput = document.getElementById('visit-date');
+    if (dateInput) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+    }
 });
-
-// Função para exportar dados (backup)
-function exportData() {
-    const data = JSON.stringify(reviews, null, 2);
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'adc-registro-backup.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    showNotification('📁 Backup exportado com sucesso!');
-}
-
-// Função para importar dados
-function importData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        try {
-            const importedReviews = JSON.parse(e.target.result);
-            reviews = importedReviews;
-            localStorage.setItem('adcReviews', JSON.stringify(reviews));
-            updateDashboard();
-            displayReviews();
-            showNotification('📥 Dados importados com sucesso!');
-        } catch (error) {
-            showNotification('❌ Erro ao importar dados!\nVerifique o arquivo.');
-        }
-    };
-    reader.readAsText(file);
-}
