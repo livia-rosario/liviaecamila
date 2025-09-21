@@ -13,7 +13,6 @@
 <body>
     <div class="container">
         <div class="app-container">
-            <!-- Tela Inicial -->
             <div id="home-screen" class="screen active">
                 <div class="content">
                     <div class="couple-illustration">
@@ -34,7 +33,6 @@
                 </div>
             </div>
 
-            <!-- Tela: Quem é? -->
             <div id="who-screen" class="screen">
                 <button class="back-btn" onclick="showScreen('home-screen')">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -58,7 +56,6 @@
                 </div>
             </div>
 
-            <!-- Tela: Dashboard -->
             <div id="dashboard-screen" class="screen">
                 <button class="back-btn" onclick="showScreen('home-screen')">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -70,9 +67,17 @@
                     <h2 class="screen-title">Nossos Registros</h2>
                     
                     <div class="stats-grid">
-                        <div class="stat-card">
+                         <div class="stat-card" id="reviews-card" onclick="filterReviews('all')">
                             <div class="stat-icon">
-                                <!-- Ícone de sorvete apropriado -->
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                </svg>
+                            </div>
+                            <div class="stat-number" id="reviews-count">0</div>
+                            <div class="stat-label">Reviews</div>
+                        </div>
+                        <div class="stat-card" id="gelateria-card" onclick="filterReviews('gelateria')">
+                            <div class="stat-icon">
                                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M12 2a4 4 0 0 0-4 4v6l4 10 4-10V6a4 4 0 0 0-4-4z"/>
                                     <circle cx="12" cy="6" r="4"/>
@@ -81,7 +86,7 @@
                             <div class="stat-number" id="gelateria-count">0</div>
                             <div class="stat-label">Gelaterias</div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" id="restaurante-card" onclick="filterReviews('restaurante')">
                             <div class="stat-icon">
                                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/>
@@ -93,7 +98,7 @@
                             <div class="stat-number" id="restaurante-count">0</div>
                             <div class="stat-label">Restaurantes</div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card" id="filme-card" onclick="filterReviews('filme')">
                             <div class="stat-icon">
                                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <polygon points="23 7 16 12 23 17 23 7"/>
@@ -105,12 +110,6 @@
                         </div>
                     </div>
 
-                    <div class="filter-tabs">
-                        <button class="filter-tab active" onclick="filterReviews('all')">Todos</button>
-                        <button class="filter-tab" onclick="filterReviews('livia')">Lívia</button>
-                        <button class="filter-tab" onclick="filterReviews('camila')">Camila</button>
-                    </div>
-
                     <div class="reviews-container" id="reviews-list">
                         <div class="empty-state">
                             <p>Nenhum registro ainda!</p>
@@ -120,7 +119,6 @@
                 </div>
             </div>
 
-            <!-- Tela: Categorias -->
             <div id="categories-screen" class="screen">
                 <button class="back-btn" onclick="showScreen('who-screen')">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -134,7 +132,6 @@
                     <div class="category-buttons">
                         <button class="category-btn" onclick="selectCategory('gelateria')">
                             <div class="category-icon">
-                                <!-- Ícone de sorvete melhor -->
                                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M12 2a4 4 0 0 0-4 4v6l4 10 4-10V6a4 4 0 0 0-4-4z"/>
                                     <circle cx="12" cy="6" r="4"/>
@@ -166,7 +163,6 @@
                 </div>
             </div>
 
-            <!-- Tela: Formulário -->
             <div id="form-screen" class="screen">
                 <button class="back-btn" onclick="showScreen('categories-screen')">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -184,11 +180,15 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Data que fomos</label>
+                            <label class="form-label" for="visit-date">Data que fomos</label>
                             <input type="date" class="form-input" id="visit-date" required>
+                            <div style="display: flex; align-items: center; margin-top: 8px;">
+                                <input type="checkbox" id="no-date-checkbox" style="margin-right: 8px;">
+                                <label for="no-date-checkbox" style="font-size: 14px; color: #666;">Não lembro a data</label>
+                            </div>
                         </div>
 
-                        <div class="form-group">
+                        <div class="form-group" id="city-group">
                             <label class="form-label">Cidade</label>
                             <input type="text" class="form-input" id="city" required>
                         </div>
@@ -202,7 +202,6 @@
                 </div>
             </div>
 
-            <!-- Tela: Detalhes da Avaliação -->
             <div id="details-screen" class="screen">
                 <button class="back-btn" onclick="showScreen('dashboard-screen')">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -212,8 +211,7 @@
                 
                 <div class="content">
                     <div id="details-content">
-                        <!-- Conteúdo será preenchido dinamicamente -->
-                    </div>
+                        </div>
                     
                     <div class="details-actions">
                         <button class="btn btn-danger" onclick="deleteReview()">

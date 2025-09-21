@@ -279,10 +279,17 @@ body {
 /* Stats Grid Responsivo */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     margin-bottom: 30px;
 }
+
+@media (min-width: 450px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
 
 .stat-card {
     background: linear-gradient(135deg, #FFB085, #F26C4F);
@@ -291,6 +298,13 @@ body {
     text-align: center;
     color: #F5F5F5;
     box-shadow: 0 4px 12px rgba(242, 108, 79, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover, .stat-card.active {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(242, 108, 79, 0.4);
 }
 
 @media (min-width: 768px) {
@@ -639,5 +653,3 @@ body {
 .screen::-webkit-scrollbar-track {
     background: transparent;
 }
-
-             

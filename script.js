@@ -145,6 +145,7 @@ function selectCategory(category) {
 function setupForm(category) {
     const formTitle = document.getElementById('form-title');
     const ratingFields = document.getElementById('rating-fields');
+    const cityGroup = document.getElementById('city-group');
     
     // Atualizar título
     const titles = {
@@ -153,6 +154,15 @@ function setupForm(category) {
         filme: 'Filme'
     };
     formTitle.textContent = titles[category];
+    
+    // Exibir/esconder campo de cidade
+    if (category === 'filme') {
+        cityGroup.style.display = 'none';
+        document.getElementById('city').removeAttribute('required');
+    } else {
+        cityGroup.style.display = 'flex';
+        document.getElementById('city').setAttribute('required', 'required');
+    }
     
     // Limpar campos de avaliação existentes
     ratingFields.innerHTML = '';
@@ -164,8 +174,12 @@ function setupForm(category) {
         ratingFields.appendChild(ratingGroup);
     });
     
-    // Definir data de hoje
-    document.getElementById('visit-date').value = new Date().toISOString().split('T')[0];
+    // Resetar o estado da data
+    const dateInput = document.getElementById('visit-date');
+    const noDateCheckbox = document.getElementById('no-date-checkbox');
+    dateInput.value = new Date().toISOString().split('T')[0];
+    dateInput.disabled = false;
+    noDateCheckbox.checked = false;
 }
 
 // Criar grupo de avaliação por estrelas
@@ -223,6 +237,23 @@ function updateStarsVisual(stars, rating, isHover = false) {
 // Salvar avaliação
 document.addEventListener('DOMContentLoaded', function() {
     const ratingForm = document.getElementById('rating-form');
+    const dateInput = document.getElementById('visit-date');
+    const noDateCheckbox = document.getElementById('no-date-checkbox');
+
+    if (noDateCheckbox) {
+        noDateCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                dateInput.value = '';
+                dateInput.disabled = true;
+                dateInput.removeAttribute('required');
+            } else {
+                dateInput.disabled = false;
+                dateInput.value = new Date().toISOString().split('T')[0];
+                dateInput.setAttribute('required', 'required');
+            }
+        });
+    }
+
     if (ratingForm) {
         ratingForm.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -233,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             
             const placeName = document.getElementById('place-name').value;
-            const visitDate = document.getElementById('visit-date').value;
+            const visitDate = noDateCheckbox.checked ? null : dateInput.value;
             const city = document.getElementById('city').value;
             
             // Validar se todas as avaliações foram preenchidas
@@ -269,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 user: currentUser,
                 category: currentCategory,
                 name: placeName,
-                city: city,
+                city: currentCategory === 'filme' ? null : city,
                 date: visitDate,
                 ratings: ratings,
                 average: Math.round(average * 10) / 10,
@@ -304,18 +335,31 @@ document.addEventListener('DOMContentLoaded', function() {
 // Atualizar dashboard com estatísticas
 function updateDashboard() {
     const stats = {
+        total: reviews.length,
         gelateria: reviews.filter(r => r.category === 'gelateria').length,
         restaurante: reviews.filter(r => r.category === 'restaurante').length,
         filme: reviews.filter(r => r.category === 'filme').length
     };
     
+    const reviewsCount = document.getElementById('reviews-count');
     const gelateriaCount = document.getElementById('gelateria-count');
     const restauranteCount = document.getElementById('restaurante-count');
     const filmeCount = document.getElementById('filme-count');
     
+    if (reviewsCount) reviewsCount.textContent = stats.total;
     if (gelateriaCount) gelateriaCount.textContent = stats.gelateria;
     if (restauranteCount) restauranteCount.textContent = stats.restaurante;
     if (filmeCount) filmeCount.textContent = stats.filme;
+
+    // Atualiza o estado visual dos cards (opcional)
+    const activeFilterCard = document.querySelector('.stat-card.active');
+    if (activeFilterCard) {
+        activeFilterCard.classList.remove('active');
+    }
+    const currentCard = document.getElementById(`${currentFilter}-card`);
+    if (currentCard) {
+        currentCard.classList.add('active');
+    }
 }
 
 // Filtrar reviews
@@ -324,22 +368,16 @@ let currentFilter = 'all';
 function filterReviews(filter) {
     currentFilter = filter;
     
-    // Atualizar botões ativos
-    document.querySelectorAll('.filter-tab').forEach(tab => {
-        tab.classList.remove('active');
+    // Atualiza o estado visual dos cards de filtro
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.classList.remove('active');
     });
-    
-    // Encontrar e ativar o botão correto
-    const activeTab = Array.from(document.querySelectorAll('.filter-tab')).find(tab => 
-        (filter === 'all' && tab.textContent.trim() === 'Todos') ||
-        (filter === 'livia' && tab.textContent.trim() === 'Lívia') ||
-        (filter === 'camila' && tab.textContent.trim() === 'Camila')
-    );
-    
-    if (activeTab) {
-        activeTab.classList.add('active');
+
+    const activeCard = document.getElementById(`${filter}-card`);
+    if (activeCard) {
+        activeCard.classList.add('active');
     }
-    
+
     displayReviews();
 }
 
@@ -351,7 +389,7 @@ function displayReviews() {
     let filteredReviews = reviews;
     
     if (currentFilter !== 'all') {
-        filteredReviews = reviews.filter(review => review.user_name === currentFilter);
+        filteredReviews = reviews.filter(review => review.category === currentFilter);
     }
     
     if (filteredReviews.length === 0) {
@@ -374,7 +412,7 @@ function displayReviews() {
                 <div class="review-date">${formatDate(review.visit_date)}</div>
             </div>
             <div class="review-user">${review.user_name === 'livia' ? 'Lívia' : 'Camila'}</div>
-            <div class="review-location">📍 ${review.city}</div>
+            <div class="review-location">${review.city ? '📍 ' + review.city : ''}</div>
             <div class="review-rating">
                 <span class="rating-average">${review.average}⭐</span>
                 <span style="color: #999; font-size: 14px;">${getCategoryIcon(review.category)} ${getCategoryName(review.category)}</span>
@@ -411,7 +449,7 @@ function showReviewDetails(reviewId) {
     detailsContent.innerHTML = `
         <div class="details-header">
             <h2 class="details-title">${review.name}</h2>
-            <div class="details-subtitle">📍 ${review.city}</div>
+            <div class="details-subtitle">${review.city ? '📍 ' + review.city : ''}</div>
             <div class="details-subtitle">${formatDate(review.visit_date)}</div>
             <span class="details-user">${review.user_name === 'livia' ? 'Lívia' : 'Camila'}</span>
         </div>
@@ -453,6 +491,7 @@ function getCriterionLabel(category, key) {
 
 // Funções auxiliares
 function formatDate(dateString) {
+    if (!dateString) return 'Data não informada';
     const date = new Date(dateString);
     return date.toLocaleDateString('pt-BR', { 
         day: '2-digit', 
@@ -523,10 +562,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Carregar reviews do Supabase
     loadReviews();
     
-    // Definir primeiro filtro ativo
-    const firstTab = document.querySelector('.filter-tab');
-    if (firstTab) {
-        firstTab.classList.add('active');
+    // Adicionar a classe 'active' no card de reviews para o estado inicial
+    const initialCard = document.getElementById('reviews-card');
+    if (initialCard) {
+        initialCard.classList.add('active');
     }
     
     // Definir data de hoje por padrão
