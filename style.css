@@ -6,8 +6,8 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #D261A3 0%, #A30061 100%);
+    font-family: 'Outfit', sans-serif;
+    background: linear-gradient(135deg, #E596C8 0%, #C75B9A 100%);
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -29,7 +29,7 @@ body {
 .phone {
     width: 375px;
     height: 812px;
-    background: #FFFFFF;
+    background: #F5F5F5;
     border-radius: 40px;
     padding: 20px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
@@ -79,17 +79,73 @@ body {
     padding: 20px 0;
 }
 
-/* Títulos */
-.title {
-    font-size: 32px;
-    font-weight: bold;
+/* Tela Inicial */
+.couple-illustration {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+
+.couple-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #FFB085;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.person {
+    width: 35px;
+    height: 45px;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    position: absolute;
+}
+
+.person1 {
+    background: #F26C4F;
+    left: 25px;
+    transform: rotate(-10deg);
+}
+
+.person2 {
+    background: #E596C8;
+    right: 25px;
+    transform: rotate(10deg);
+}
+
+.app-title {
+    font-family: 'Oleo Script Swash Caps', cursive;
+    font-size: 36px;
     text-align: center;
+    color: #C75B9A;
+    margin-bottom: 8px;
+    font-weight: 400;
+}
+
+.app-subtitle {
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    color: #C75B9A;
     margin-bottom: 60px;
-    color: #A30061;
     letter-spacing: 2px;
 }
 
-.subtitle {
+.home-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 0 20px;
+}
+
+/* Títulos das Telas */
+.screen-title {
+    font-family: 'Outfit', sans-serif;
     font-size: 24px;
     font-weight: 600;
     text-align: center;
@@ -98,44 +154,48 @@ body {
 }
 
 /* Botões */
-.buttons-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
 .btn {
-    background: #FFFFFF;
-    border: 2px solid #FD9954;
+    background: #F5F5F5;
+    border: 2px solid #FFB085;
     border-radius: 24px;
-    padding: 18px 24px;
-    font-size: 18px;
+    padding: 16px 24px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 16px;
     font-weight: 600;
     color: #333;
     cursor: pointer;
     transition: all 0.3s ease;
     text-align: center;
-    box-shadow: 0 4px 12px rgba(253, 153, 84, 0.2);
+    box-shadow: 0 4px 12px rgba(255, 176, 133, 0.2);
 }
 
 .btn:hover {
-    background: #FD9954;
-    color: #FFFFFF;
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(253, 153, 84, 0.3);
+    box-shadow: 0 8px 20px rgba(255, 176, 133, 0.3);
 }
 
 .btn-primary {
-    background: #D52800;
-    color: #FFFFFF;
-    border-color: #D52800;
-    box-shadow: 0 4px 12px rgba(213, 40, 0, 0.3);
+    background: #F26C4F;
+    color: #F5F5F5;
+    border-color: #F26C4F;
+    box-shadow: 0 4px 12px rgba(242, 108, 79, 0.3);
 }
 
 .btn-primary:hover {
-    background: #A30061;
-    border-color: #A30061;
-    box-shadow: 0 8px 20px rgba(163, 0, 97, 0.4);
+    background: #C75B9A;
+    border-color: #C75B9A;
+    box-shadow: 0 8px 20px rgba(199, 91, 154, 0.4);
+}
+
+.btn-secondary {
+    background: transparent;
+    color: #F26C4F;
+    border-color: #F26C4F;
+}
+
+.btn-secondary:hover {
+    background: #F26C4F;
+    color: #F5F5F5;
 }
 
 /* Botão Voltar */
@@ -145,49 +205,234 @@ body {
     left: 30px;
     background: none;
     border: none;
-    font-size: 24px;
     cursor: pointer;
-    color: #D261A3;
-    font-weight: bold;
+    color: #C75B9A;
     z-index: 10;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
 }
 
 .back-btn:hover {
-    color: #A30061;
+    background: rgba(199, 91, 154, 0.1);
 }
 
-/* Cards de Estatísticas */
-.stats-container {
+/* Botões de Usuário */
+.user-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 0 40px;
+}
+
+.user-btn {
+    background: #F5F5F5;
+    border: 2px solid #FFB085;
+    border-radius: 20px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.user-btn:hover {
+    background: #FFB085;
+    color: #F5F5F5;
+    transform: translateY(-2px);
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.user-avatar.livia {
+    background: #F26C4F;
+}
+
+.user-avatar.camila {
+    background: #E596C8;
+}
+
+/* Stats Grid */
+.stats-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 40px;
+    gap: 12px;
+    margin-bottom: 30px;
 }
 
 .stat-card {
-    background: linear-gradient(135deg, #FD9954, #D52800);
-    border-radius: 20px;
-    padding: 20px 15px;
+    background: linear-gradient(135deg, #FFB085, #F26C4F);
+    border-radius: 16px;
+    padding: 20px 12px;
     text-align: center;
-    color: white;
-    box-shadow: 0 4px 12px rgba(253, 153, 84, 0.2);
+    color: #F5F5F5;
+    box-shadow: 0 4px 12px rgba(242, 108, 79, 0.2);
 }
 
 .stat-icon {
-    font-size: 24px;
     margin-bottom: 8px;
+    opacity: 0.9;
 }
 
 .stat-number {
     font-size: 24px;
-    font-weight: bold;
+    font-weight: 700;
     margin-bottom: 4px;
 }
 
 .stat-label {
     font-size: 12px;
-    opacity: 0.9;
     font-weight: 500;
+    opacity: 0.9;
+}
+
+/* Filter Tabs */
+.filter-tabs {
+    display: flex;
+    background: rgba(255, 176, 133, 0.2);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 20px;
+}
+
+.filter-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #C75B9A;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-tab.active {
+    background: #F26C4F;
+    color: #F5F5F5;
+}
+
+/* Reviews Container */
+.reviews-container {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.empty-state {
+    text-align: center;
+    color: #999;
+    margin-top: 60px;
+}
+
+.empty-state p {
+    margin-bottom: 8px;
+}
+
+.review-card {
+    background: #F5F5F5;
+    border: 2px solid #FFB085;
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(255, 176, 133, 0.1);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.review-name {
+    font-weight: 700;
+    font-size: 16px;
+    color: #333;
+}
+
+.review-date {
+    font-size: 12px;
+    color: #999;
+}
+
+.review-user {
+    display: inline-block;
+    background: #E596C8;
+    color: #F5F5F5;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.review-location {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.review-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rating-average {
+    font-weight: 700;
+    font-size: 18px;
+    color: #F26C4F;
+}
+
+/* Botões de Categoria */
+.category-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 0 20px;
+}
+
+.category-btn {
+    background: #F5F5F5;
+    border: 2px solid #FFB085;
+    border-radius: 20px;
+    padding: 24px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.category-btn:hover {
+    background: #FFB085;
+    color: #F5F5F5;
+    transform: translateY(-2px);
+}
+
+.category-icon {
+    color: #F26C4F;
+    transition: color 0.3s ease;
+}
+
+.category-btn:hover .category-icon {
+    color: #F5F5F5;
 }
 
 /* Formulário */
@@ -211,23 +456,24 @@ body {
 
 .form-input {
     padding: 14px 16px;
-    border: 2px solid #FD9954;
+    border: 2px solid #FFB085;
     border-radius: 12px;
     font-size: 16px;
-    background: #FFFFFF;
+    background: #F5F5F5;
     color: #333;
     transition: border-color 0.3s ease;
+    font-family: 'Outfit', sans-serif;
 }
 
 .form-input:focus {
     outline: none;
-    border-color: #D261A3;
-    box-shadow: 0 0 0 3px rgba(210, 97, 163, 0.1);
+    border-color: #E596C8;
+    box-shadow: 0 0 0 3px rgba(229, 150, 200, 0.1);
 }
 
 /* Avaliações por Estrelas */
 .rating-group {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
 }
 
 .stars-container {
@@ -242,14 +488,15 @@ body {
     color: #ddd;
     cursor: pointer;
     transition: all 0.2s ease;
+    user-select: none;
 }
 
 .star.filled {
-    color: #FD9954;
+    color: #FFB085;
 }
 
 .star:hover {
-    color: #D52800;
+    color: #F26C4F;
     transform: scale(1.1);
 }
 
@@ -267,33 +514,32 @@ body {
     }
 }
 
+/* Scrollbar personalizada */
+.reviews-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.reviews-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.reviews-container::-webkit-scrollbar-thumb {
+    background: #FFB085;
+    border-radius: 2px;
+}
+
 /* Animações */
-@keyframes slideInRight {
+@keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateX(100%);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
-        transform: translateX(0);
+        transform: translateY(0);
     }
 }
 
-@keyframes slideInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-100%);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.screen.slide-in-right {
-    animation: slideInRight 0.3s ease-out forwards;
-}
-
-.screen.slide-in-left {
-    animation: slideInLeft 0.3s ease-out forwards;
+.review-card {
+    animation: fadeIn 0.3s ease-out;
 }

@@ -31,18 +31,17 @@ function showScreen(screenId) {
     
     // Mostrar tela atual
     document.getElementById(screenId).classList.add('active');
-}
-
-// Login inicial
-function login() {
-    showScreen('dashboard-screen');
-    updateDashboard();
+    
+    // Atualizar conteúdo se necessário
+    if (screenId === 'dashboard-screen') {
+        updateDashboard();
+        displayReviews();
+    }
 }
 
 // Selecionar usuário
 function selectUser(user) {
     currentUser = user;
-    document.getElementById('user-name').textContent = user === 'livia' ? 'Lívia' : 'Camila';
     showScreen('categories-screen');
 }
 
@@ -60,9 +59,9 @@ function setupForm(category) {
     
     // Atualizar título
     const titles = {
-        gelateria: '🍨 Gelateria',
-        restaurante: '🍽️ Restaurante',
-        filme: '🎬 Filme'
+        gelateria: 'Gelateria',
+        restaurante: 'Restaurante',
+        filme: 'Filme'
     };
     formTitle.textContent = titles[category];
     
@@ -87,47 +86,49 @@ function createRatingGroup(key, label) {
     
     div.innerHTML = `
         <label class="form-label">${label}</label>
-        <div class="stars-container" data-rating="${key}">
-            ${[1,2,3,4,5].map(i => `<span class="star" data-value="${i}">⭐</span>`).join('')}
+        <div class="stars-container" data-rating="${key}" data-value="0">
+            ${[1,2,3,4,5].map(i => `<span class="star" data-value="${i}">★</span>`).join('')}
         </div>
     `;
     
     // Adicionar eventos de clique nas estrelas
+    const starsContainer = div.querySelector('.stars-container');
     const stars = div.querySelectorAll('.star');
+    
     stars.forEach((star, index) => {
         star.addEventListener('click', () => {
             const rating = index + 1;
-            const container = star.parentElement;
-            container.dataset.value = rating;
+            starsContainer.dataset.value = rating;
             
             // Atualizar visual das estrelas
-            stars.forEach((s, i) => {
-                s.classList.toggle('filled', i < rating);
-            });
+            updateStarsVisual(stars, rating);
         });
         
         star.addEventListener('mouseenter', () => {
             const rating = index + 1;
-            stars.forEach((s, i) => {
-                s.style.color = i < rating ? '#D52800' : '#ddd';
-            });
-        });
-        
-        star.addEventListener('mouseleave', () => {
-            const currentRating = parseInt(star.parentElement.dataset.value) || 0;
-            stars.forEach((s, i) => {
-                if (i < currentRating) {
-                    s.style.color = '#FD9954';
-                    s.classList.add('filled');
-                } else {
-                    s.style.color = '#ddd';
-                    s.classList.remove('filled');
-                }
-            });
+            updateStarsVisual(stars, rating, true);
         });
     });
     
+    starsContainer.addEventListener('mouseleave', () => {
+        const currentRating = parseInt(starsContainer.dataset.value) || 0;
+        updateStarsVisual(stars, currentRating);
+    });
+    
     return div;
+}
+
+// Atualizar visual das estrelas
+function updateStarsVisual(stars, rating, isHover = false) {
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.classList.add('filled');
+            star.style.color = isHover ? '#F26C4F' : '#FFB085';
+        } else {
+            star.classList.remove('filled');
+            star.style.color = '#ddd';
+        }
+    });
 }
 
 // Salvar avaliação
@@ -138,13 +139,26 @@ document.getElementById('rating-form').addEventListener('submit', function(e) {
     const visitDate = document.getElementById('visit-date').value;
     const city = document.getElementById('city').value;
     
-    // Coletar ratings
+    // Validar se todas as avaliações foram preenchidas
+    const ratingContainers = document.querySelectorAll('.stars-container');
     const ratings = {};
-    document.querySelectorAll('.stars-container').forEach(container => {
+    let allRated = true;
+    
+    ratingContainers.forEach(container => {
         const criterionKey = container.dataset.rating;
         const rating = parseInt(container.dataset.value) || 0;
+        
+        if (rating === 0) {
+            allRated = false;
+        }
+        
         ratings[criterionKey] = rating;
     });
+    
+    if (!allRated) {
+        alert('Por favor, avalie todos os critérios!');
+        return;
+    }
     
     // Calcular média
     const ratingValues = Object.values(ratings);
@@ -171,40 +185,150 @@ document.getElementById('rating-form').addEventListener('submit', function(e) {
     document.getElementById('rating-form').reset();
     document.querySelectorAll('.stars-container').forEach(container => {
         container.dataset.value = '0';
-        container.querySelectorAll('.star').forEach(star => {
-            star.classList.remove('filled');
-            star.style.color = '#ddd';
-        });
+        const stars = container.querySelectorAll('.star');
+        updateStarsVisual(stars, 0);
     });
     
     // Voltar ao dashboard
     showScreen('dashboard-screen');
-    updateDashboard();
     
     // Feedback visual
-    alert(`✅ Avaliação salva com sucesso!\n${placeName} - ${average}⭐`);
+    showNotification(`✨ Avaliação salva!\n${placeName} - ${average}⭐`);
 });
 
 // Atualizar dashboard com estatísticas
 function updateDashboard() {
-    if (!currentUser) return;
-    
-    const userReviews = reviews.filter(review => review.user === currentUser);
-    
     const stats = {
-        gelateria: userReviews.filter(r => r.category === 'gelateria').length,
-        restaurante: userReviews.filter(r => r.category === 'restaurante').length,
-        filme: userReviews.filter(r => r.category === 'filme').length
+        gelateria: reviews.filter(r => r.category === 'gelateria').length,
+        restaurante: reviews.filter(r => r.category === 'restaurante').length,
+        filme: reviews.filter(r => r.category === 'filme').length
     };
     
-    const statCards = document.querySelectorAll('.stat-card');
-    const categories = ['gelateria', 'restaurante', 'filme'];
+    document.getElementById('gelateria-count').textContent = stats.gelateria;
+    document.getElementById('restaurante-count').textContent = stats.restaurante;
+    document.getElementById('filme-count').textContent = stats.filme;
+}
+
+// Filtrar reviews
+let currentFilter = 'all';
+
+function filterReviews(filter) {
+    currentFilter = filter;
     
-    statCards.forEach((card, index) => {
-        const category = categories[index];
-        const numberElement = card.querySelector('.stat-number');
-        numberElement.textContent = stats[category];
+    // Atualizar botões ativos
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.classList.remove('active');
     });
+    event.target.classList.add('active');
+    
+    displayReviews();
+}
+
+// Exibir reviews
+function displayReviews() {
+    const reviewsList = document.getElementById('reviews-list');
+    
+    let filteredReviews = reviews;
+    
+    if (currentFilter !== 'all') {
+        filteredReviews = reviews.filter(review => review.user === currentFilter);
+    }
+    
+    if (filteredReviews.length === 0) {
+        reviewsList.innerHTML = `
+            <div class="empty-state">
+                <p>Nenhum registro ainda!</p>
+                <p>Que tal adicionar o primeiro? ✨</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Ordenar por data (mais recente primeiro)
+    filteredReviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    reviewsList.innerHTML = filteredReviews.map(review => `
+        <div class="review-card">
+            <div class="review-header">
+                <div class="review-name">${review.name}</div>
+                <div class="review-date">${formatDate(review.date)}</div>
+            </div>
+            <div class="review-user">${review.user === 'livia' ? 'Lívia' : 'Camila'}</div>
+            <div class="review-location">📍 ${review.city}</div>
+            <div class="review-rating">
+                <span class="rating-average">${review.average}⭐</span>
+                <span style="color: #999; font-size: 14px;">${getCategoryIcon(review.category)} ${getCategoryName(review.category)}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Funções auxiliares
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', { 
+        day: '2-digit', 
+        month: '2-digit',
+        year: '2-digit'
+    });
+}
+
+function getCategoryIcon(category) {
+    const icons = {
+        gelateria: '🍨',
+        restaurante: '🍽️',
+        filme: '🎬'
+    };
+    return icons[category] || '';
+}
+
+function getCategoryName(category) {
+    const names = {
+        gelateria: 'Gelateria',
+        restaurante: 'Restaurante',
+        filme: 'Filme'
+    };
+    return names[category] || category;
+}
+
+// Notificação
+function showNotification(message) {
+    // Criar elemento de notificação
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #F26C4F;
+        color: #F5F5F5;
+        padding: 16px 20px;
+        border-radius: 12px;
+        font-family: 'Outfit', sans-serif;
+        font-weight: 600;
+        box-shadow: 0 8px 20px rgba(242, 108, 79, 0.3);
+        z-index: 1000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        white-space: pre-line;
+        text-align: center;
+        max-width: 250px;
+    `;
+    
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    // Animação de entrada
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remover após 3 segundos
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
 }
 
 // Inicialização
@@ -216,9 +340,13 @@ document.addEventListener('DOMContentLoaded', function() {
         dateInput.value = today;
     }
     
-    // Atualizar dashboard se já houver um usuário selecionado
-    if (currentUser) {
-        updateDashboard();
+    // Atualizar dashboard
+    updateDashboard();
+    
+    // Definir primeiro filtro ativo
+    const firstTab = document.querySelector('.filter-tab');
+    if (firstTab) {
+        firstTab.classList.add('active');
     }
 });
 
@@ -235,6 +363,8 @@ function exportData() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+    
+    showNotification('📁 Backup exportado com sucesso!');
 }
 
 // Função para importar dados
@@ -249,9 +379,10 @@ function importData(event) {
             reviews = importedReviews;
             localStorage.setItem('adcReviews', JSON.stringify(reviews));
             updateDashboard();
-            alert('✅ Dados importados com sucesso!');
+            displayReviews();
+            showNotification('📥 Dados importados com sucesso!');
         } catch (error) {
-            alert('❌ Erro ao importar dados. Verifique se o arquivo está correto.');
+            showNotification('❌ Erro ao importar dados!\nVerifique o arquivo.');
         }
     };
     reader.readAsText(file);
