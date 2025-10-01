@@ -1,191 +1,150 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lívia e Camila - Nossos Encontros</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Oleo+Script+Swash+Caps&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lívia e Camila - Nossos Encontros</title>
+
+  <!-- Import das fontes -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Oleo+Script+Swash+Caps&display=swap" rel="stylesheet">
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <div class="phone">
-            <!-- Tela inicial -->
-            <div id="home-screen" class="screen active">
-                <div class="content">
-                    <div class="couple-illustration">
-                        <div class="couple-circle"></div>
-                    </div>
-                    
-                    <h1 class="app-title">Lívia e Camila</h1>
-                    <p class="app-subtitle">NOSSOS ENCONTROS</p>
-                    
-                    <div class="home-buttons">
-                        <button class="btn btn-primary" onclick="showScreen('who-screen')">
-                            ADD REGISTRO
-                        </button>
-                        <button class="btn btn-secondary" onclick="showScreen('dashboard-screen')">
-                            VER REGISTROS
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Seleção de usuário -->
-            <div id="who-screen" class="screen">
-                <button class="back-btn" onclick="showScreen('home-screen')">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M15 18l-6-6 6-6"/>
-                    </svg>
-                </button>
-                
-                <div class="content">
-                    <h2 class="screen-title">Quem é?</h2>
-                    
-                    <div class="user-buttons">
-                        <button class="user-btn" onclick="selectUser('livia')">
-                            <div class="user-avatar livia"></div>
-                            <span>Lívia</span>
-                        </button>
-                        <button class="user-btn" onclick="selectUser('camila')">
-                            <div class="user-avatar camila"></div>
-                            <span>Camila</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Dashboard -->
-            <div id="dashboard-screen" class="screen">
-                <button class="back-btn" onclick="showScreen('home-screen')">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M15 18l-6-6 6-6"/>
-                    </svg>
-                </button>
-                
-                <div class="content">
-                    <h2 class="screen-title">Nossos Registros</h2>
-                    
-                    <div class="stats-grid">
-                         <div class="stat-card" id="reviews-card" onclick="filterReviews('all')">
-                            <div class="stat-icon">⭐</div>
-                            <div class="stat-number" id="reviews-count">0</div>
-                            <div class="stat-label">Reviews</div>
-                        </div>
-                        <div class="stat-card" id="gelateria-card" onclick="filterReviews('gelateria')">
-                            <div class="stat-icon">🍨</div>
-                            <div class="stat-number" id="gelateria-count">0</div>
-                            <div class="stat-label">Gelaterias</div>
-                        </div>
-                        <div class="stat-card" id="restaurante-card" onclick="filterReviews('restaurante')">
-                            <div class="stat-icon">🍴</div>
-                            <div class="stat-number" id="restaurante-count">0</div>
-                            <div class="stat-label">Restaurantes</div>
-                        </div>
-                        <div class="stat-card" id="filme-card" onclick="filterReviews('filme')">
-                            <div class="stat-icon">🎬</div>
-                            <div class="stat-number" id="filme-count">0</div>
-                            <div class="stat-label">Filmes</div>
-                        </div>
-                    </div>
-
-                    <div class="reviews-container" id="reviews-list">
-                        <div class="empty-state">
-                            <p>Nenhum registro ainda!</p>
-                            <p>Que tal adicionar o primeiro?</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Seleção de categoria -->
-            <div id="categories-screen" class="screen">
-                <button class="back-btn" onclick="showScreen('who-screen')">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M15 18l-6-6 6-6"/>
-                    </svg>
-                </button>
-                
-                <div class="content">
-                    <h2 class="screen-title">O que você quer avaliar?</h2>
-                    
-                    <div class="category-buttons">
-                        <button class="category-btn" onclick="selectCategory('gelateria')">🍨 Gelateria</button>
-                        <button class="category-btn" onclick="selectCategory('restaurante')">🍴 Restaurante</button>
-                        <button class="category-btn" onclick="selectCategory('filme')">🎬 Filme</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Formulário -->
-            <div id="form-screen" class="screen">
-                <button class="back-btn" onclick="showScreen('categories-screen')">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M15 18l-6-6 6-6"/>
-                    </svg>
-                </button>
-                
-                <div class="content">
-                    <h2 class="screen-title" id="form-title">Gelateria</h2>
-                    
-                    <form id="rating-form" class="form">
-                        <div class="form-group">
-                            <label class="form-label">Nome</label>
-                            <input type="text" class="form-input" id="place-name" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="visit-date">Data que fomos</label>
-                            <input type="date" class="form-input" id="visit-date">
-                            <div style="display: flex; align-items: center; margin-top: 8px;">
-                                <input type="checkbox" id="no-date-checkbox" style="margin-right: 8px;">
-                                <label for="no-date-checkbox" style="font-size: 14px; color: #666;">Não lembro a data</label>
-                            </div>
-                        </div>
-
-                        <div class="form-group" id="city-group">
-                            <label class="form-label">Cidade</label>
-                            <input type="text" class="form-input" id="city">
-                        </div>
-
-                        <div id="rating-fields"></div>
-
-                        <div class="form-group">
-                            <label class="form-label">Comentários (opcional)</label>
-                            <textarea id="comments" class="form-input"></textarea>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">
-                            Salvar Avaliação
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Detalhes -->
-            <div id="details-screen" class="screen">
-                <button class="back-btn" onclick="showScreen('dashboard-screen')">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M15 18l-6-6 6-6"/>
-                    </svg>
-                </button>
-                
-                <div class="content">
-                    <div id="details-content"></div>
-                    
-                    <div class="details-actions">
-                        <button class="btn btn-danger" onclick="deleteReview()">
-                            Excluir Avaliação
-                        </button>
-                    </div>
-                </div>
-            </div>
+  <div class="container">
+    <div class="phone">
+      <!-- Tela inicial -->
+      <div id="home-screen" class="screen active">
+        <div class="content">
+          <div class="couple-illustration">
+            <div class="couple-circle"></div>
+          </div>
+          <h1 class="app-title">Lívia e Camila</h1>
+          <p class="app-subtitle">NOSSOS ENCONTROS</p>
+          <div class="home-buttons">
+            <button class="btn btn-primary" onclick="showScreen('who-screen')">ADD REGISTRO</button>
+            <button class="btn btn-secondary" onclick="showScreen('dashboard-screen')">VER REGISTROS</button>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <script src="script.js"></script>
+      <!-- Seleção de usuário -->
+      <div id="who-screen" class="screen">
+        <button class="back-btn btn-secondary" onclick="showScreen('home-screen')">←</button>
+        <div class="content">
+          <h2 class="screen-title">Quem é?</h2>
+          <div class="user-buttons">
+            <button class="user-btn" onclick="selectUser('livia')">
+              <div class="user-avatar livia"></div>
+              <span>Lívia</span>
+            </button>
+            <button class="user-btn" onclick="selectUser('camila')">
+              <div class="user-avatar camila"></div>
+              <span>Camila</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard -->
+      <div id="dashboard-screen" class="screen">
+        <button class="back-btn btn-secondary" onclick="showScreen('home-screen')">←</button>
+        <div class="content">
+          <h2 class="screen-title">Nossos Registros</h2>
+          <div class="stats-grid">
+            <div class="stat-card" id="reviews-card" onclick="filterReviews('all')">
+              <div class="stat-icon">⭐</div>
+              <div class="stat-number" id="reviews-count">0</div>
+              <div class="stat-label">Reviews</div>
+            </div>
+            <div class="stat-card" id="gelateria-card" onclick="filterReviews('gelateria')">
+              <div class="stat-icon">🍨</div>
+              <div class="stat-number" id="gelateria-count">0</div>
+              <div class="stat-label">Gelaterias</div>
+            </div>
+            <div class="stat-card" id="restaurante-card" onclick="filterReviews('restaurante')">
+              <div class="stat-icon">🍴</div>
+              <div class="stat-number" id="restaurante-count">0</div>
+              <div class="stat-label">Restaurantes</div>
+            </div>
+            <div class="stat-card" id="filme-card" onclick="filterReviews('filme')">
+              <div class="stat-icon">🎬</div>
+              <div class="stat-number" id="filme-count">0</div>
+              <div class="stat-label">Filmes</div>
+            </div>
+          </div>
+          <div class="reviews-container" id="reviews-list">
+            <div class="empty-state">
+              <p>Nenhum registro ainda!</p>
+              <p>Que tal adicionar o primeiro?</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seleção de categoria -->
+      <div id="categories-screen" class="screen">
+        <button class="back-btn btn-secondary" onclick="showScreen('who-screen')">←</button>
+        <div class="content">
+          <h2 class="screen-title">O que você quer avaliar?</h2>
+          <div class="category-buttons">
+            <button class="category-btn" onclick="selectCategory('gelateria')">🍨 Gelateria</button>
+            <button class="category-btn" onclick="selectCategory('restaurante')">🍴 Restaurante</button>
+            <button class="category-btn" onclick="selectCategory('filme')">🎬 Filme</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulário -->
+      <div id="form-screen" class="screen">
+        <button class="back-btn btn-secondary" onclick="showScreen('categories-screen')">←</button>
+        <div class="content">
+          <h2 class="screen-title" id="form-title">Gelateria</h2>
+          <form id="rating-form" class="form">
+            <div class="form-group">
+              <label class="form-label">Nome</label>
+              <input type="text" class="form-input" id="place-name" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="visit-date">Data que fomos</label>
+              <input type="date" class="form-input" id="visit-date">
+              <div style="margin-top:8px;">
+                <input type="checkbox" id="no-date-checkbox">
+                <label for="no-date-checkbox">Não lembro a data</label>
+              </div>
+            </div>
+            <div class="form-group" id="city-group">
+              <label class="form-label">Cidade</label>
+              <input type="text" class="form-input" id="city">
+            </div>
+            <div id="rating-fields"></div>
+            <div class="form-group">
+              <label class="form-label">Comentários (opcional)</label>
+              <textarea id="comments" class="form-input"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Salvar Avaliação</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Detalhes -->
+      <div id="details-screen" class="screen">
+        <button class="back-btn btn-secondary" onclick="showScreen('dashboard-screen')">←</button>
+        <div class="content">
+          <div id="details-content"></div>
+          <div class="details-actions">
+            <button class="btn btn-danger" onclick="deleteReview()">Excluir Avaliação</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script src="script.js"></script>
 </body>
 </html>
