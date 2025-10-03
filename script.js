@@ -1,8 +1,6 @@
 // Configuração do Supabase
 const supabaseUrl = 'https://riscuqhqbkzlzsqzmtaa.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpc2N1cWhxYmt6bHpzcXptdGFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg0MTYzNTgsImV4cCI6MjA3Mzk5MjM1OH0.llaXtLrm1IfF4m3y8Hc_vL8_Yzrczk8nPwL5G-q5-Q4';
-
-// Inicializar Supabase
 const { createClient } = supabase;
 const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
@@ -11,613 +9,457 @@ let currentUser = null;
 let currentCategory = null;
 let currentReviewId = null;
 let reviews = [];
+let experiences = [];
+let currentFilter = 'all';
 
 // Critérios de avaliação por categoria
 const ratingCriteria = {
-    gelateria: [
-        { key: 'sabor', label: 'Sabor' },
-        { key: 'textura', label: 'Textura' },
-        { key: 'equilibrio', label: 'Equilíbrio' },
-        { key: 'casquinha', label: 'Casquinha' }
-    ],
-    restaurante: [
-        { key: 'sabor', label: 'Sabor' },
-        { key: 'atendimento', label: 'Atendimento' },
-        { key: 'custoBeneficio', label: 'Custo-Benefício' },
-        { key: 'ambiente', label: 'Ambiente' }
-    ],
-    filme: [
-        { key: 'geral', label: 'Avaliação Geral' }
-    ]
+  gelateria: [
+    { key: 'sabor', label: 'Sabor' },
+    { key: 'textura', label: 'Textura' },
+    { key: 'equilibrio', label: 'Equilíbrio' },
+    { key: 'casquinha', label: 'Casquinha' }
+  ],
+  restaurante: [
+    { key: 'sabor', label: 'Sabor' },
+    { key: 'atendimento', label: 'Atendimento' },
+    { key: 'custoBeneficio', label: 'Custo-Benefício' },
+    { key: 'ambiente', label: 'Ambiente' }
+  ],
+  filme: [
+    { key: 'geral', label: 'Avaliação Geral' }
+  ]
 };
 
-// Função para carregar reviews do Supabase
+// Carregar reviews
 async function loadReviews() {
-    try {
-        const { data, error } = await supabaseClient
-            .from('reviews')
-            .select('*')
-            .order('timestamp', { ascending: false });
-        
-        if (error) {
-            console.error('Erro ao carregar reviews:', error);
-            showNotification('Erro ao carregar dados!');
-            return;
-        }
-        
-        reviews = data || [];
-        updateDashboard();
-        displayReviews();
-    } catch (error) {
-        console.error('Erro na conexão:', error);
-        showNotification('Erro de conexão!');
+  try {
+    const { data, error } = await supabaseClient
+      .from('reviews')
+      .select('*')
+      .order('timestamp', { ascending: false });
+
+    if (error) {
+      console.error('Erro ao carregar reviews:', error);
+      showNotification('Erro ao carregar dados!');
+      return;
     }
+    reviews = data || [];
+    updateDashboard();
+    displayReviews();
+  } catch (error) {
+    console.error('Erro na conexão:', error);
+    showNotification('Erro de conexão!');
+  }
 }
 
-// Função para salvar review no Supabase
+// Carregar experiências
+async function loadExperiences() {
+  try {
+    const { data, error } = await supabaseClient
+      .from('experiences')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.error('Erro ao carregar experiências:', error);
+      return;
+    }
+    experiences = data || [];
+  } catch (err) {
+    console.error('Erro de conexão ao carregar experiências:', err);
+  }
+}
+
+// Salvar review
 async function saveReview(reviewData) {
-    try {
-        const { data, error } = await supabaseClient
-            .from('reviews')
-            .insert([{
-                id: reviewData.id,
-                user_name: reviewData.user,
-                category: reviewData.category,
-                name: reviewData.name,
-                city: reviewData.city,
-                visit_date: reviewData.date,
-                ratings: reviewData.ratings,
-                average: reviewData.average,
-                timestamp: reviewData.timestamp,
-                comments: reviewData.comments
-            }])
-            .select();
-        
-        if (error) {
-            console.error('Erro ao salvar:', error);
-            showNotification('Erro ao salvar avaliação!');
-            return false;
-        }
-        
-        // Atualizar lista local
-        await loadReviews();
-        return true;
-    } catch (error) {
-        console.error('Erro na conexão:', error);
-        showNotification('Erro de conexão!');
-        return false;
+  try {
+    const { error } = await supabaseClient
+      .from('reviews')
+      .insert([{
+        id: reviewData.id,
+        user_name: reviewData.user,
+        category: reviewData.category,
+        name: reviewData.name,
+        city: reviewData.city,
+        visit_date: reviewData.date,
+        ratings: reviewData.ratings,
+        average: reviewData.average,
+        timestamp: reviewData.timestamp,
+        comments: reviewData.comments
+      }]);
+
+    if (error) {
+      console.error('Erro ao salvar:', error);
+      showNotification('Erro ao salvar avaliação!');
+      return false;
     }
+    await loadReviews();
+    return true;
+  } catch (error) {
+    console.error('Erro na conexão:', error);
+    showNotification('Erro de conexão!');
+    return false;
+  }
 }
 
-// Função para deletar review do Supabase
+// Deletar review
 async function deleteReviewFromDB(reviewId) {
-    try {
-        const { error } = await supabaseClient
-            .from('reviews')
-            .delete()
-            .eq('id', reviewId);
-        
-        if (error) {
-            console.error('Erro ao deletar:', error);
-            showNotification('Erro ao excluir avaliação!');
-            return false;
-        }
-        
-        // Atualizar lista local
-        await loadReviews();
-        return true;
-    } catch (error) {
-        console.error('Erro na conexão:', error);
-        showNotification('Erro de conexão!');
-        return false;
+  try {
+    const { error } = await supabaseClient
+      .from('reviews')
+      .delete()
+      .eq('id', reviewId);
+
+    if (error) {
+      console.error('Erro ao deletar:', error);
+      showNotification('Erro ao excluir avaliação!');
+      return false;
     }
+    await loadReviews();
+    return true;
+  } catch (error) {
+    console.error('Erro na conexão:', error);
+    showNotification('Erro de conexão!');
+    return false;
+  }
 }
 
-// Navegação entre telas
+// Navegação
 function showScreen(screenId) {
-    // Esconder todas as telas
-    document.querySelectorAll('.screen').forEach(screen => {
-        screen.classList.remove('active');
-    });
-    
-    // Mostrar tela atual
-    document.getElementById(screenId).classList.add('active');
-    
-    // Carregar dados se necessário
-    if (screenId === 'dashboard-screen') {
-        loadReviews();
-    }
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+
+  if (screenId === 'dashboard-screen') loadReviews();
 }
 
 // Selecionar usuário
 function selectUser(user) {
-    currentUser = user;
-    showScreen('categories-screen');
+  currentUser = user;
+  showScreen('categories-screen');
 }
 
 // Selecionar categoria
 function selectCategory(category) {
-    currentCategory = category;
-    setupForm(category);
-    showScreen('form-screen');
+  currentCategory = category;
+  setupForm(category);
+  showScreen('form-screen');
 }
 
-// Configurar formulário baseado na categoria
+// Configurar formulário
 function setupForm(category) {
-    const formTitle = document.getElementById('form-title');
-    const ratingFields = document.getElementById('rating-fields');
-    const cityGroup = document.getElementById('city-group');
-    
-    // Atualizar título
-    const titles = {
-        gelateria: 'Gelateria',
-        restaurante: 'Restaurante',
-        filme: 'Filme'
-    };
-    formTitle.textContent = titles[category];
-    
-    // Exibir/esconder campo de cidade
-    if (category === 'filme') {
-        cityGroup.style.display = 'none';
-        document.getElementById('city').removeAttribute('required');
-    } else {
-        cityGroup.style.display = 'flex';
-        document.getElementById('city').setAttribute('required', 'required');
-    }
-    
-    // Limpar campos de avaliação existentes
-    ratingFields.innerHTML = '';
-    
-    // Adicionar campos de avaliação específicos
-    const criteria = ratingCriteria[category];
-    criteria.forEach(criterion => {
-        const ratingGroup = createRatingGroup(criterion.key, criterion.label);
-        ratingFields.appendChild(ratingGroup);
+  const formTitle = document.getElementById('form-title');
+  const ratingFields = document.getElementById('rating-fields');
+  const cityGroup = document.getElementById('city-group');
+
+  const titles = { gelateria: 'Gelateria', restaurante: 'Restaurante', filme: 'Filme' };
+  formTitle.textContent = titles[category];
+
+  if (category === 'filme') {
+    cityGroup.style.display = 'none';
+    document.getElementById('city').removeAttribute('required');
+  } else {
+    cityGroup.style.display = 'flex';
+    document.getElementById('city').removeAttribute('required');
+  }
+
+  ratingFields.innerHTML = '';
+  ratingCriteria[category].forEach(c => {
+    ratingFields.appendChild(createRatingGroup(c.key, c.label));
+  });
+
+  const dateInput = document.getElementById('visit-date');
+  const noDateCheckbox = document.getElementById('no-date-checkbox');
+  if (dateInput && noDateCheckbox) {
+    dateInput.value = new Date().toISOString().split('T')[0];
+    dateInput.disabled = false;
+    noDateCheckbox.checked = false;
+  }
+
+  document.getElementById('comments').value = '';
+
+  // Atualizar datalist com experiências da categoria
+// Atualizar datalist com experiências da categoria
+const datalist = document.getElementById('place-suggestions');
+if (datalist) {
+  datalist.innerHTML = '';
+  experiences
+    .filter(exp => exp.category === category)
+    .forEach(exp => {
+      const option = document.createElement('option');
+      option.value = exp.name;
+      datalist.appendChild(option);
     });
-    
-    // Resetar o estado da data e comentários
-    const dateInput = document.getElementById('visit-date');
-    const noDateCheckbox = document.getElementById('no-date-checkbox');
-    const commentsInput = document.getElementById('comments');
-    
-    if (dateInput && noDateCheckbox) {
-        dateInput.value = new Date().toISOString().split('T')[0];
-        dateInput.disabled = false;
-        noDateCheckbox.checked = false;
-    }
-    
-    if (commentsInput) {
-        commentsInput.value = '';
-    }
+}
 }
 
-// Criar grupo de avaliação por estrelas
+// Criar grupo de estrelas
 function createRatingGroup(key, label) {
-    const div = document.createElement('div');
-    div.className = 'form-group rating-group';
-    
-    div.innerHTML = `
-        <label class="form-label">${label}</label>
-        <div class="stars-container" data-rating="${key}" data-value="0">
-            ${[1,2,3,4,5].map(i => `<span class="star" data-value="${i}">★</span>`).join('')}
-        </div>
-    `;
-    
-    // Adicionar eventos de clique nas estrelas
-    const starsContainer = div.querySelector('.stars-container');
-    const stars = div.querySelectorAll('.star');
-    
-    stars.forEach((star, index) => {
-        star.addEventListener('click', () => {
-            const rating = index + 1;
-            starsContainer.dataset.value = rating;
-            
-            // Atualizar visual das estrelas
-            updateStarsVisual(stars, rating);
-        });
-        
-        star.addEventListener('mouseenter', () => {
-            const rating = index + 1;
-            updateStarsVisual(stars, rating, true);
-        });
+  const div = document.createElement('div');
+  div.className = 'form-group rating-group';
+  div.innerHTML = `
+    <label class="form-label">${label}</label>
+    <div class="stars-container" data-rating="${key}" data-value="0">
+      ${[1,2,3,4,5].map(i => `<span class="star" data-value="${i}">★</span>`).join('')}
+    </div>`;
+  const starsContainer = div.querySelector('.stars-container');
+  const stars = div.querySelectorAll('.star');
+
+  stars.forEach((star, index) => {
+    star.addEventListener('click', () => {
+      starsContainer.dataset.value = index+1;
+      updateStarsVisual(stars, index+1);
     });
-    
-    starsContainer.addEventListener('mouseleave', () => {
-        const currentRating = parseInt(starsContainer.dataset.value) || 0;
-        updateStarsVisual(stars, currentRating);
-    });
-    
-    return div;
+    star.addEventListener('mouseenter', () => updateStarsVisual(stars, index+1, true));
+  });
+  starsContainer.addEventListener('mouseleave', () => {
+    updateStarsVisual(stars, parseInt(starsContainer.dataset.value) || 0);
+  });
+  return div;
 }
 
-// Atualizar visual das estrelas
-function updateStarsVisual(stars, rating, isHover = false) {
-    stars.forEach((star, index) => {
-        if (index < rating) {
-            star.classList.add('filled');
-            star.style.color = isHover ? '#F26C4F' : '#FFB085';
-        } else {
-            star.classList.remove('filled');
-            star.style.color = '#ddd';
-        }
-    });
+function updateStarsVisual(stars, rating, isHover=false) {
+  stars.forEach((star, index) => {
+    if (index < rating) {
+      star.classList.add('filled');
+      star.style.color = isHover ? '#F26C4F' : '#FFB085';
+    } else {
+      star.classList.remove('filled');
+      star.style.color = '#ddd';
+    }
+  });
 }
 
-// Atualizar dashboard com estatísticas
 function updateDashboard() {
-    const stats = {
-        total: reviews.length,
-        gelateria: reviews.filter(r => r.category === 'gelateria').length,
-        restaurante: reviews.filter(r => r.category === 'restaurante').length,
-        filme: reviews.filter(r => r.category === 'filme').length
-    };
-    
-    const reviewsCount = document.getElementById('reviews-count');
-    const gelateriaCount = document.getElementById('gelateria-count');
-    const restauranteCount = document.getElementById('restaurante-count');
-    const filmeCount = document.getElementById('filme-count');
-    
-    if (reviewsCount) reviewsCount.textContent = stats.total;
-    if (gelateriaCount) gelateriaCount.textContent = stats.gelateria;
-    if (restauranteCount) restauranteCount.textContent = stats.restaurante;
-    if (filmeCount) filmeCount.textContent = stats.filme;
+  // Agrupar por experiência
+  const grouped = {};
+  reviews.forEach(r => {
+    const key = `${r.category}_${r.name.toLowerCase()}`;
+    if (!grouped[key]) grouped[key] = r; // só precisa 1 por experiência
+  });
 
-    // Atualiza o estado visual dos cards
-    const activeFilterCard = document.querySelector('.stat-card.active');
-    if (activeFilterCard) {
-        activeFilterCard.classList.remove('active');
-    }
-    
-    let cardId = 'reviews-card';
-    if (currentFilter === 'gelateria') cardId = 'gelateria-card';
-    else if (currentFilter === 'restaurante') cardId = 'restaurante-card';
-    else if (currentFilter === 'filme') cardId = 'filme-card';
-    
-    const currentCard = document.getElementById(cardId);
-    if (currentCard) {
-        currentCard.classList.add('active');
-    }
+  const experiencesArr = Object.values(grouped);
+
+  const stats = {
+    total: experiencesArr.length,
+    gelateria: experiencesArr.filter(r => r.category === 'gelateria').length,
+    restaurante: experiencesArr.filter(r => r.category === 'restaurante').length,
+    filme: experiencesArr.filter(r => r.category === 'filme').length
+  };
+
+  document.getElementById('reviews-count').textContent = stats.total;
+  document.getElementById('gelateria-count').textContent = stats.gelateria;
+  document.getElementById('restaurante-count').textContent = stats.restaurante;
+  document.getElementById('filme-count').textContent = stats.filme;
 }
 
-// Filtrar reviews
-let currentFilter = 'all';
 
+// Filtrar
 function filterReviews(filter) {
-    currentFilter = filter;
-    
-    // Atualiza o estado visual dos cards de filtro
-    document.querySelectorAll('.stat-card').forEach(card => {
-        card.classList.remove('active');
-    });
-
-    let cardId = 'reviews-card';
-    if (filter === 'gelateria') cardId = 'gelateria-card';
-    else if (filter === 'restaurante') cardId = 'restaurante-card';
-    else if (filter === 'filme') cardId = 'filme-card';
-    
-    const activeCard = document.getElementById(cardId);
-    if (activeCard) {
-        activeCard.classList.add('active');
-    }
-
-    displayReviews();
+  currentFilter = filter;
+  displayReviews();
 }
 
-// Exibir reviews
 function displayReviews() {
-    const reviewsList = document.getElementById('reviews-list');
-    if (!reviewsList) return;
-    
-    let filteredReviews = reviews;
-    
-    if (currentFilter !== 'all') {
-        filteredReviews = reviews.filter(review => review.category === currentFilter);
-    }
-    
-    if (filteredReviews.length === 0) {
-        reviewsList.innerHTML = `
-            <div class="empty-state">
-                <p>Nenhum registro ainda!</p>
-                <p>Que tal adicionar o primeiro?</p>
-            </div>
-        `;
-        return;
-    }
-    
-    // Ordenar por timestamp (mais recente primeiro)
-    filteredReviews.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
-    reviewsList.innerHTML = filteredReviews.map(review => `
-        <div class="review-card" onclick="showReviewDetails(${review.id})">
-            <div class="review-header">
-                <div class="review-name">${review.name}</div>
-                <div class="review-date">${formatDate(review.visit_date)}</div>
-            </div>
-            <div class="review-user">${review.user_name === 'livia' ? 'Lívia' : 'Camila'}</div>
-            <div class="review-location">${review.city ? '📍 ' + review.city : ''}</div>
-            ${review.comments ? `<div class="review-comment">"${review.comments.length > 60 ? review.comments.substring(0, 60) + '...' : review.comments}"</div>` : ''}
-            <div class="review-rating">
-                <span class="rating-average">${review.average}⭐</span>
-                <span style="color: #999; font-size: 14px;">${getCategoryIcon(review.category)} ${getCategoryName(review.category)}</span>
-            </div>
-        </div>
+  const reviewsList = document.getElementById('reviews-list');
+  if (!reviewsList) return;
+
+  let filtered = currentFilter === 'all' ? reviews : reviews.filter(r => r.category === currentFilter);
+
+  if (filtered.length === 0) {
+    reviewsList.innerHTML = `<div class="empty-state"><p>Nenhum registro ainda!</p></div>`;
+    return;
+  }
+
+  // Agrupar por experiência (categoria + nome)
+  const grouped = {};
+  filtered.forEach(r => {
+    const key = `${r.category}_${r.name.toLowerCase()}`;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(r);
+  });
+
+  // Renderizar cards agrupados
+  reviewsList.innerHTML = Object.values(grouped).map(group => {
+    const first = group[0];
+
+    // bloco com cada user + nota
+    const usersHtml = group.map(r => `
+      <div class="user-line">
+        <span class="user-badge ${r.user_name}">${r.user_name === 'livia' ? 'Lívia' : 'Camila'}</span>
+        <span class="user-rating">${r.average}⭐</span>
+      </div>
     `).join('');
-}
 
-// Mostrar detalhes da avaliação
-function showReviewDetails(reviewId) {
-    const review = reviews.find(r => r.id === reviewId);
-    if (!review) return;
-    
-    currentReviewId = reviewId;
-    
-    const detailsContent = document.getElementById('details-content');
-    if (!detailsContent) return;
-    
-    // Gerar estrelas para cada critério
-    const ratingsHtml = Object.entries(review.ratings).map(([key, rating]) => {
-        const criterionLabel = getCriterionLabel(review.category, key);
-        const starsHtml = Array.from({length: 5}, (_, i) => 
-            `<span class="rating-star ${i < rating ? '' : 'empty'}">★</span>`
-        ).join('');
-        
-        return `
-            <div class="rating-item">
-                <span class="rating-label">${criterionLabel}</span>
-                <div class="rating-stars">${starsHtml}</div>
-            </div>
-        `;
-    }).join('');
-    
-    detailsContent.innerHTML = `
-        <div class="details-header">
-            <h2 class="details-title">${review.name}</h2>
-            <div class="details-subtitle">${review.city ? '📍 ' + review.city : ''}</div>
-            <div class="details-subtitle">${formatDate(review.visit_date)}</div>
-            <span class="details-user">${review.user_name === 'livia' ? 'Lívia' : 'Camila'}</span>
+    return `
+      <div class="review-card" onclick="showExperienceDetails('${first.category}','${first.name}')">
+        <div class="review-header-row">
+          <span class="exp-name">${first.name}</span>
+          <span class="exp-category">${getCategoryIcon(first.category)} ${getCategoryName(first.category)}</span>
         </div>
-        
-        <div class="details-average">
-            <div class="average-number">${review.average}⭐</div>
-            <div class="average-label">Média Geral</div>
+        <div class="users-block">
+          ${usersHtml}
         </div>
-        
-        <div class="details-ratings">
-            ${ratingsHtml}
-        </div>
-        
-        ${review.comments ? `
-            <div class="details-comments">
-                <h3 class="comments-title">Comentários</h3>
-                <div class="comments-text">"${review.comments}"</div>
-            </div>
-        ` : ''}
+      </div>
     `;
-    
-    showScreen('details-screen');
+  }).join('');
 }
 
-// Deletar avaliação
+// Mostrar detalhes de uma experiência
+function showExperienceDetails(category, name) {
+  const group = reviews.filter(r => r.category===category && r.name.toLowerCase()===name.toLowerCase());
+  const detailsContent = document.getElementById('details-content');
+  detailsContent.innerHTML = `
+    <div class="details-header">
+      <h2 class="details-title">${name}</h2>
+      <div class="details-subtitle">${getCategoryIcon(category)} ${getCategoryName(category)}</div>
+    </div>
+    ${group.map(r=>{
+      const starsHtml = Object.entries(r.ratings).map(([key, rating])=>{
+        const label = getCriterionLabel(r.category,key);
+        const stars = Array.from({length:5},(_,i)=>`<span class="rating-star ${i<rating?'':'empty'}">★</span>`).join('');
+        return `<div class="rating-item"><span>${label}</span><div>${stars}</div></div>`;
+      }).join('');
+      return `
+        <div class="user-review-block">
+          <h3>${r.user_name==='livia'?'Lívia':'Camila'}</h3>
+          <div class="user-average">${r.average}⭐</div>
+          ${r.comments?`<p>"${r.comments}"</p>`:''}
+          <div class="user-ratings">${starsHtml}</div>
+        </div>`;
+    }).join('')}
+  `;
+  showScreen('details-screen');
+}
+
+// Deletar
 async function deleteReview() {
-    if (!currentReviewId) return;
-    
-    if (confirm('Tem certeza que quer excluir esta avaliação?')) {
-        const success = await deleteReviewFromDB(currentReviewId);
-        
-        if (success) {
-            showNotification('Avaliação excluída!');
-            showScreen('dashboard-screen');
-            currentReviewId = null;
-        }
+  if (!currentReviewId) return;
+  if (confirm('Excluir esta avaliação?')) {
+    const success = await deleteReviewFromDB(currentReviewId);
+    if (success) {
+      showNotification('Avaliação excluída!');
+      showScreen('dashboard-screen');
     }
+  }
 }
 
-// Obter label do critério
-function getCriterionLabel(category, key) {
-    const criteria = ratingCriteria[category];
-    const criterion = criteria.find(c => c.key === key);
-    return criterion ? criterion.label : key;
+// Helpers
+function getCriterionLabel(category,key){
+  const c = ratingCriteria[category].find(c=>c.key===key);
+  return c?c.label:key;
 }
-
-// Funções auxiliares
-function formatDate(dateString) {
-    if (!dateString) return 'Data não informada';
-    
-    try {
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) return 'Data não informada';
-        
-        return date.toLocaleDateString('pt-BR', { 
-            day: '2-digit', 
-            month: '2-digit',
-            year: '2-digit'
-        });
-    } catch (error) {
-        return 'Data não informada';
-    }
-}
-
-function getCategoryIcon(category) {
-    const icons = {
-        gelateria: '🍨',
-        restaurante: '🍽️',
-        filme: '🎬'
-    };
-    return icons[category] || '';
-}
-
-function getCategoryName(category) {
-    const names = {
-        gelateria: 'Gelateria',
-        restaurante: 'Restaurante',
-        filme: 'Filme'
-    };
-    return names[category] || category;
-}
+function formatDate(d){ if(!d) return 'Data não informada'; try{ const dt=new Date(d); return dt.toLocaleDateString('pt-BR'); } catch{ return 'Data não informada'; } }
+function getCategoryIcon(c){ return {gelateria:'🍨',restaurante:'🍴',filme:'🎬'}[c]||''; }
+function getCategoryName(c){ return {gelateria:'Gelateria',restaurante:'Restaurante',filme:'Filme'}[c]||c; }
 
 // Notificação
-function showNotification(message) {
-    // Remover notificação anterior se existir
-    const existing = document.querySelector('.notification');
-    if (existing) {
-        existing.remove();
-    }
-    
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #F26C4F;
-        color: #F5F5F5;
-        padding: 16px 20px;
-        border-radius: 12px;
-        font-family: 'Outfit', sans-serif;
-        font-weight: 600;
-        box-shadow: 0 8px 20px rgba(242, 108, 79, 0.3);
-        z-index: 1000;
-        transform: translateX(100%);
-        transition: transform 0.3s ease;
-        white-space: pre-line;
-        text-align: center;
-        max-width: 250px;
-    `;
-    
-    notification.textContent = message;
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.style.transform = 'translateX(0)';
-    }, 100);
-    
-    setTimeout(() => {
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => {
-            if (document.body.contains(notification)) {
-                document.body.removeChild(notification);
-            }
-        }, 300);
-    }, 3000);
+function showNotification(msg){
+  const existing=document.querySelector('.notification'); if(existing) existing.remove();
+  const n=document.createElement('div');
+  n.className='notification';
+  n.style.cssText=`position:fixed;top:20px;right:20px;background:#F26C4F;color:#fff;padding:12px 16px;border-radius:8px;z-index:1000;`;
+  n.textContent=msg; document.body.appendChild(n);
+  setTimeout(()=>{ if(n.parentNode) n.parentNode.removeChild(n); },3000);
 }
 
 // Inicialização
-document.addEventListener('DOMContentLoaded', function() {
-    // Carregar reviews do Supabase
-    loadReviews();
-    
-    // Configurar formulário
-    const ratingForm = document.getElementById('rating-form');
-    const dateInput = document.getElementById('visit-date');
-    const noDateCheckbox = document.getElementById('no-date-checkbox');
+document.addEventListener('DOMContentLoaded',()=>{
+  loadReviews();
+  loadExperiences();
 
-    // Event listener para checkbox de data
-    if (noDateCheckbox && dateInput) {
-        noDateCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                dateInput.value = '';
-                dateInput.disabled = true;
-                dateInput.removeAttribute('required');
-            } else {
-                dateInput.disabled = false;
-                dateInput.value = new Date().toISOString().split('T')[0];
-                dateInput.setAttribute('required', 'required');
-            }
+  const ratingForm=document.getElementById('rating-form');
+  const dateInput=document.getElementById('visit-date');
+  const noDateCheckbox=document.getElementById('no-date-checkbox');
+  if(noDateCheckbox && dateInput){
+    noDateCheckbox.addEventListener('change',function(){
+      if(this.checked){ dateInput.value=''; dateInput.disabled=true; }
+      else{ dateInput.disabled=false; dateInput.value=new Date().toISOString().split('T')[0]; }
+    });
+  }
+
+  if(ratingForm){
+    ratingForm.addEventListener('submit',async function(e){
+      e.preventDefault();
+      const placeName=document.getElementById('place-name').value;
+      const visitDate=noDateCheckbox && noDateCheckbox.checked?null:dateInput.value;
+      let city=document.getElementById('city').value.trim();
+      if(city==='') city=null;
+      const comments=document.getElementById('comments').value||null;
+
+      const ratingContainers=document.querySelectorAll('.stars-container');
+      const ratings={}; let allRated=true;
+      ratingContainers.forEach(c=>{
+        const k=c.dataset.rating; const v=parseInt(c.dataset.value)||0;
+        if(v===0) allRated=false; ratings[k]=v;
+      });
+      if(!allRated){ alert('Por favor, avalie todos os critérios!'); return; }
+
+      const ratingValues=Object.values(ratings);
+      const average=ratingValues.reduce((a,b)=>a+b,0)/ratingValues.length;
+
+      const newReview={
+        id:Date.now(),
+        user:currentUser,
+        category:currentCategory,
+        name:placeName,
+        city:currentCategory==='filme'?null:city,
+        date:visitDate,
+        ratings,
+        average:Math.round(average*10)/10,
+        timestamp:new Date().toISOString(),
+        comments
+      };
+      const success=await saveReview(newReview);
+      if(success){
+        ratingForm.reset();
+        document.querySelectorAll('.stars-container').forEach(c=>{
+          c.dataset.value='0'; updateStarsVisual(c.querySelectorAll('.star'),0);
         });
+        showScreen('dashboard-screen');
+        showNotification(`Avaliação salva!\n${placeName} - ${average}⭐`);
+      }
+    });
+  }
+
+// Formulário de experiências
+const experienceForm = document.getElementById('experience-form');
+if (experienceForm) {
+  experienceForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const category = document.getElementById('experience-category').value;
+    const name = document.getElementById('experience-name').value.trim();
+
+    if (!category || !name) {
+      alert('Preencha todos os campos!');
+      return;
     }
 
-    // Event listener para formulário
-    if (ratingForm) {
-        ratingForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Salvando...';
-            submitBtn.disabled = true;
-            
-            try {
-                const placeName = document.getElementById('place-name').value;
-                const visitDate = noDateCheckbox && noDateCheckbox.checked ? null : dateInput.value;
-                const city = document.getElementById('city').value;
-                const comments = document.getElementById('comments').value || null;
-                
-                // Validar se todas as avaliações foram preenchidas
-                const ratingContainers = document.querySelectorAll('.stars-container');
-                const ratings = {};
-                let allRated = true;
-                
-                ratingContainers.forEach(container => {
-                    const criterionKey = container.dataset.rating;
-                    const rating = parseInt(container.dataset.value) || 0;
-                    
-                    if (rating === 0) {
-                        allRated = false;
-                    }
-                    
-                    ratings[criterionKey] = rating;
-                });
-                
-                if (!allRated) {
-                    alert('Por favor, avalie todos os critérios!');
-                    return;
-                }
-                
-                // Calcular média
-                const ratingValues = Object.values(ratings);
-                const average = ratingValues.reduce((sum, rating) => sum + rating, 0) / ratingValues.length;
-                
-                // Criar nova avaliação
-                const newReview = {
-                    id: Date.now(),
-                    user: currentUser,
-                    category: currentCategory,
-                    name: placeName,
-                    city: currentCategory === 'filme' ? null : city,
-                    date: visitDate,
-                    ratings: ratings,
-                    average: Math.round(average * 10) / 10,
-                    timestamp: new Date().toISOString(),
-                    comments: comments
-                };
-                
-                // Salvar no Supabase
-                const success = await saveReview(newReview);
-                
-                if (success) {
-                    // Resetar formulário
-                    ratingForm.reset();
-                    document.querySelectorAll('.stars-container').forEach(container => {
-                        container.dataset.value = '0';
-                        const stars = container.querySelectorAll('.star');
-                        updateStarsVisual(stars, 0);
-                    });
-                    
-                    // Voltar ao dashboard
-                    showScreen('dashboard-screen');
-                    
-                    // Feedback visual
-                    showNotification(`Avaliação salva!\n${placeName} - ${average}⭐`);
-                }
-                
-            } catch (error) {
-                console.error('Erro no formulário:', error);
-                showNotification('Erro inesperado!');
-            } finally {
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            }
-        });
+    // 🔎 Verificação antes de salvar
+    const exists = experiences.some(exp =>
+      exp.category === category && exp.name.toLowerCase() === name.toLowerCase()
+    );
+    if (exists) {
+      showNotification('⚠️ Essa experiência já existe!');
+      return;
     }
-    
-    // Adicionar a classe 'active' no card de reviews para o estado inicial
-    const initialCard = document.getElementById('reviews-card');
-    if (initialCard) {
-        initialCard.classList.add('active');
+
+    try {
+      const { error } = await supabaseClient.from('experiences').insert([{ category, name }]);
+      if (error) {
+        console.error(error);
+        showNotification('Erro ao salvar experiência!');
+      } else {
+        showNotification('Experiência adicionada!');
+        experienceForm.reset();
+        await loadExperiences();
+        showScreen('home-screen');
+      }
+        } catch (err) {
+          console.error(err);
+          showNotification('Erro de conexão!');
+        }
+      });
     }
-    
-    // Definir data de hoje por padrão
-    if (dateInput) {
-        dateInput.value = new Date().toISOString().split('T')[0];
-    }
-});
+    });

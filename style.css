@@ -159,13 +159,16 @@ body {
 
 /* Avatar do casal */
 .couple-circle {
-  width: 200px;
-  height: 200px;
-  border-radius: 50%;
-  background: url("img/casal.png") center/cover no-repeat;
+  width: 220px;              /* pode aumentar/diminuir */
+  height: 220px;
+  border-radius: 50%;        /* círculo perfeito */
+  background: url("img/casal.png") center/contain no-repeat;
+  background-color: #fff;    /* borda branca onde sobrar espaço */
   box-shadow: 0 8px 24px rgba(242, 108, 79, 0.2);
   margin: 0 auto 20px;
 }
+
+
 
 /* Seleção de usuário */
 .user-buttons {
@@ -505,4 +508,152 @@ textarea.form-input {
 .empty-state p {
   margin-bottom: 8px;
   font-size: 15px;
+}
+
+/* 🔽 Comentários no detalhe do review */
+.comments-section {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 16px;
+  border: 2px solid #ffb085;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.comment-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.comment-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.comment-avatar.livia { background-image: url("img/livia.png"); }
+.comment-avatar.camila { background-image: url("img/camila.png"); }
+
+.comment-bubble {
+  background: #fff8f6;
+  border: 1.5px solid #ffb085;
+  border-radius: 12px;
+  padding: 10px 12px;
+  flex: 1;
+}
+
+.comment-meta {
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 4px;
+}
+
+.comment-text {
+  font-size: 14px;
+  color: #444;
+  white-space: pre-wrap;
+}
+
+.comment-empty {
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
+.comment-form .author-option {
+  margin-right: 14px;
+  font-size: 14px;
+  color: #444;
+}
+.btn-link {
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 14px;
+  margin-top: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.btn-link:hover {
+  color: #F26C4F;
+}
+.extra-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.extra-actions .btn-link {
+  font-size: 14px;
+  color: #666;
+  text-decoration: underline;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.extra-actions .btn-link:hover {
+  color: #F26C4F;
+}
+.review-header-row {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.exp-name {
+  font-size: 16px;
+  color: #222;
+}
+
+.exp-category {
+  font-size: 14px;
+  color: #777;
+}
+
+.users-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.user-line {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.user-badge {
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.user-badge.livia {
+  background-color: #c06ccf; /* roxinho */
+}
+
+.user-badge.camila {
+  background-color: #f26c4f; /* laranja */
+}
+
+.user-rating {
+  font-size: 14px;
+  color: #333;
+  font-weight: 600;
 }

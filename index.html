@@ -26,8 +26,12 @@
           <h1 class="app-title">Lívia e Camila</h1>
           <p class="app-subtitle">NOSSOS ENCONTROS</p>
           <div class="home-buttons">
-            <button class="btn btn-primary" onclick="showScreen('who-screen')">ADD REGISTRO</button>
-            <button class="btn btn-secondary" onclick="showScreen('dashboard-screen')">VER REGISTROS</button>
+            <button class="btn btn-primary" onclick="showScreen('who-screen')">Adicionar Review</button>
+            <button class="btn btn-secondary" onclick="showScreen('dashboard-screen')">Ver Reviews</button>
+            <div class="extra-actions">
+            <button class="btn btn-link" onclick="showScreen('add-experience-screen')">+ Adicionar Experiência</button>
+        </div>
+
           </div>
         </div>
       </div>
@@ -38,13 +42,14 @@
         <div class="content">
           <h2 class="screen-title">Quem é?</h2>
           <div class="user-buttons">
-            <button class="user-btn" onclick="selectUser('livia')">
-              <div class="user-avatar livia"></div>
-              <span>Lívia</span>
-            </button>
+ 
             <button class="user-btn" onclick="selectUser('camila')">
               <div class="user-avatar camila"></div>
               <span>Camila</span>
+           <button class="user-btn" onclick="selectUser('livia')">
+              <div class="user-avatar livia"></div>
+              <span>Lívia</span>
+            </button>              
             </button>
           </div>
         </div>
@@ -105,10 +110,12 @@
         <div class="content">
           <h2 class="screen-title" id="form-title">Gelateria</h2>
           <form id="rating-form" class="form">
-            <div class="form-group">
-              <label class="form-label">Nome</label>
-              <input type="text" class="form-input" id="place-name" required>
-            </div>
+          <div class="form-group">
+            <label class="form-label">Nome</label>
+            <input type="text" class="form-input" id="place-name" list="place-suggestions" required>
+            <datalist id="place-suggestions"></datalist>
+          </div>
+
             <div class="form-group">
               <label class="form-label" for="visit-date">Data que fomos</label>
               <input type="date" class="form-input" id="visit-date">
@@ -136,13 +143,37 @@
         <button class="back-btn btn-secondary" onclick="showScreen('dashboard-screen')">←</button>
         <div class="content">
           <div id="details-content"></div>
+
           <div class="details-actions">
             <button class="btn btn-danger" onclick="deleteReview()">Excluir Avaliação</button>
           </div>
         </div>
       </div>
-    </div>
+      <!-- Adicionar Experiência -->
+<div id="add-experience-screen" class="screen">
+  <button class="back-btn btn-secondary" onclick="showScreen('home-screen')">←</button>
+  <div class="content">
+    <h2 class="screen-title">Nova Experiência</h2>
+    <form id="experience-form" class="form">
+      <div class="form-group">
+        <label class="form-label">Categoria</label>
+        <select id="experience-category" class="form-input" required>
+          <option value="">Selecione...</option>
+          <option value="gelateria">🍨 Gelateria</option>
+          <option value="restaurante">🍴 Restaurante</option>
+          <option value="filme">🎬 Filme</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nome</label>
+        <input type="text" id="experience-name" class="form-input" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Salvar Experiência</button>
+    </form>
   </div>
+</div>
+    </div> <!-- fecha .phone -->
+  </div>   <!-- fecha .container -->
 
   <!-- JS -->
   <script src="script.js"></script>
